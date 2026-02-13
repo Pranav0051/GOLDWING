@@ -101,28 +101,26 @@ export function PricingCards({ onBookClick }: { onBookClick: (packageId: string)
               viewport={{ once: true }}
               transition={{ delay: index * 0.1, duration: 0.8 }}
               whileHover={{ y: -10, scale: pkg.popular ? 1.02 : 1.05 }}
-              className={`group relative bg-white/5 backdrop-blur-md border rounded-3xl p-6 md:p-8 transition-all duration-300 ${
-                pkg.popular
-                  ? "border-[#D4AF37] shadow-[0_0_40px_rgba(212,175,55,0.3)] md:scale-105"
-                  : "border-white/10 hover:border-[#D4AF37]/50"
-              }`}
+              className={`group relative bg-white/5 backdrop-blur-md border rounded-3xl transition-all duration-300 ${pkg.popular
+                  ? "border-[#D4AF37] shadow-[0_0_40px_rgba(212,175,55,0.3)] md:scale-105 pt-12 md:pt-16 px-6 md:px-8 pb-6 md:pb-8"
+                  : "border-white/10 hover:border-[#D4AF37]/50 p-6 md:p-8"
+                }`}
             >
               {/* Popular Badge */}
               {pkg.popular && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                  <div className="bg-gradient-to-r from-[#D4AF37] to-[#F7C948] text-[#0B0F19] px-6 py-2 rounded-full flex items-center gap-2">
+                <div className="absolute -top-5 left-1/2 -translate-x-1/2 z-20">
+                  <div className="bg-gradient-to-r from-[#D4AF37] to-[#F7C948] text-[#0B0F19] px-6 py-2 rounded-full flex items-center gap-2 shadow-lg">
                     <Sparkles className="w-4 h-4" />
-                    <span className="font-bold text-sm">MOST POPULAR</span>
+                    <span className="font-bold text-sm whitespace-nowrap">MOST POPULAR</span>
                   </div>
                 </div>
               )}
 
               {/* Glow Effect */}
-              <div className={`absolute inset-0 rounded-3xl transition-all duration-300 ${
-                pkg.popular
+              <div className={`absolute inset-0 rounded-3xl transition-all duration-300 ${pkg.popular
                   ? "bg-gradient-to-br from-[#D4AF37]/10 to-transparent"
                   : "bg-gradient-to-br from-[#D4AF37]/0 to-[#D4AF37]/0 group-hover:from-[#D4AF37]/5 group-hover:to-transparent"
-              }`} />
+                }`} />
 
               <div className="relative z-10 space-y-6">
                 {/* Header */}
@@ -185,11 +183,10 @@ export function PricingCards({ onBookClick }: { onBookClick: (packageId: string)
                 {/* CTA Button */}
                 <button
                   onClick={() => onBookClick(pkg.id)}
-                  className={`w-full py-4 rounded-full font-semibold transition-all ${
-                    pkg.popular
+                  className={`w-full py-4 rounded-full font-semibold transition-all ${pkg.popular
                       ? "bg-gradient-to-r from-[#D4AF37] to-[#F7C948] text-[#0B0F19] hover:shadow-[0_0_30px_rgba(212,175,55,0.5)] hover:scale-105"
                       : "bg-white/10 text-white border border-white/20 hover:bg-white/20 hover:border-[#D4AF37]/50"
-                  }`}
+                    }`}
                 >
                   Book Now
                 </button>
