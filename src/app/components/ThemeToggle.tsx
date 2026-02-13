@@ -58,10 +58,10 @@ export function ThemeToggle() {
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
                 className="hidden md:flex items-center justify-center transition-transform active:scale-95 relative overflow-hidden bg-black/50 backdrop-blur-md border border-white/30 rounded-full"
-                style={{ width: "100px", height: "40px" }}
+                style={{ width: "116px", height: "40px" }}
             >
                 <div
-                    className={`absolute left-1 flex items-center justify-center h-[30px] rounded-full bg-gradient-to-b from-[#ff88ff] to-[#ac46ff] z-20 transition-all duration-300 ${isHovered ? "w-[90px]" : "w-[30px]"
+                    className={`absolute left-1 flex items-center justify-center h-[30px] rounded-full bg-gradient-to-b from-[#ff88ff] to-[#ac46ff] z-20 transition-all duration-300 ${isHovered ? "w-[106px]" : "w-[30px]"
                         }`}
                 >
                     {isDark ? (
@@ -71,8 +71,8 @@ export function ThemeToggle() {
                     )}
                 </div>
                 <div
-                    className={`flex items-center justify-center h-full text-white z-10 transition-all duration-300 ${isHovered ? "w-0 opacity-0 translate-x-2" : "w-[60px] opacity-100 translate-x-4 ml-auto"
-                        }`}
+                    className={`flex items-center justify-center h-full z-10 transition-all duration-300 ${isHovered ? "w-0 opacity-0 translate-x-2" : "w-[76px] opacity-100 ml-auto"
+                        } ${isDark ? "text-white" : "text-black"}`}
                 >
                     <span className="text-[1.04em] font-medium">{isDark ? "Dark" : "Light"}</span>
                 </div>

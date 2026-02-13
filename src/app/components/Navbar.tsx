@@ -38,13 +38,13 @@ export function Navbar({ onBookClick }: { onBookClick: () => void }) {
             <img
               src="/goldwing-logo.png"
               alt="Goldwing Adventure Tour"
-              className="h-12 md:h-14 w-auto object-contain"
+              className="h-10 md:h-14 w-auto object-contain"
             />
-            <div className="hidden sm:block">
-              <h1 className="text-white font-bold tracking-tight text-base md:text-lg leading-tight">
+            <div className="block">
+              <h1 className="text-white font-bold tracking-tight text-sm md:text-lg leading-tight">
                 GOLDWING
               </h1>
-              <p className="text-[#D4AF37] text-[10px] md:text-xs tracking-wider">ADVENTURE TOUR</p>
+              <p className="text-[#D4AF37] text-[8px] md:text-xs tracking-wider">ADVENTURE TOUR</p>
             </div>
           </motion.div>
 
