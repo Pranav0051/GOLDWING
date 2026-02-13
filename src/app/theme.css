@@ -1,0 +1,194 @@
+/* ===================================
+   LIGHT THEME STYLES
+   =================================== */
+
+/* Root level - apply to html element */
+.light-theme {
+    background-color: #f8f9fa !important;
+}
+
+/* Body */
+.light-theme body {
+    background-color: #f8f9fa !important;
+    color: #1a1a1a !important;
+}
+
+/* All sections should have light backgrounds */
+.light-theme section {
+    background-color: #f8f9fa !important;
+}
+
+/* Hero section - keep image visible but adjust overlay */
+.light-theme section:first-of-type {
+    background-color: transparent !important;
+}
+
+/* Hero overlay - very light and transparent for clear image */
+.light-theme .bg-gradient-to-b {
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.0) 50%, rgba(255, 255, 255, 0.15) 100%) !important;
+}
+
+/* Navigation */
+.light-theme nav {
+    background-color: rgba(255, 255, 255, 0.95) !important;
+    border-bottom-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+.light-theme nav.bg-transparent {
+    background-color: rgba(255, 255, 255, 0.8) !important;
+}
+
+/* Footer */
+.light-theme footer {
+    background-color: #ffffff !important;
+    border-top-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+/* ===================================
+   TEXT COLORS
+   =================================== */
+
+/* Primary text - make it dark and readable */
+.light-theme h1,
+.light-theme h2,
+.light-theme h3,
+.light-theme h4,
+.light-theme h5,
+.light-theme h6,
+.light-theme .text-white {
+    color: #1a1a1a !important;
+}
+
+/* Secondary text variations */
+.light-theme .text-white\/90 {
+    color: rgba(26, 26, 26, 0.9) !important;
+}
+
+.light-theme .text-white\/80 {
+    color: rgba(26, 26, 26, 0.8) !important;
+}
+
+.light-theme .text-white\/70 {
+    color: rgba(26, 26, 26, 0.7) !important;
+}
+
+.light-theme .text-white\/60 {
+    color: rgba(26, 26, 26, 0.6) !important;
+}
+
+/* Keep gold accent visible */
+.light-theme .text-\[\#D4AF37\] {
+    color: #B8860B !important;
+    /* Darker gold for better contrast */
+}
+
+/* ===================================
+   BACKGROUNDS
+   =================================== */
+
+/* Semi-transparent backgrounds */
+.light-theme .bg-white\/5 {
+    background-color: rgba(0, 0, 0, 0.03) !important;
+}
+
+.light-theme .bg-white\/10 {
+    background-color: rgba(0, 0, 0, 0.05) !important;
+}
+
+.light-theme .bg-white\/20 {
+    background-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Dark section backgrounds to light */
+.light-theme .bg-\[\#0B0F19\],
+.light-theme .bg-\[\#111827\] {
+    background-color: #ffffff !important;
+}
+
+/* ===================================
+   BORDERS
+   =================================== */
+
+.light-theme .border-white\/10,
+.light-theme .border-white\/20,
+.light-theme .border-white\/30 {
+    border-color: rgba(0, 0, 0, 0.15) !important;
+}
+
+/* ===================================
+   CARDS & CONTAINERS
+   =================================== */
+
+/* Cards should have white background with shadow */
+.light-theme .rounded-2xl,
+.light-theme .rounded-3xl {
+    background-color: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Backdrop elements */
+.light-theme .backdrop-blur-md,
+.light-theme .backdrop-blur-xl {
+    backdrop-filter: blur(10px);
+    background-color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* ===================================
+   MODALS & OVERLAYS
+   =================================== */
+
+.light-theme .bg-black\/80,
+.light-theme .bg-black\/60 {
+    background-color: rgba(0, 0, 0, 0.5) !important;
+}
+
+/* ===================================
+   BUTTONS (Keep accent colors)
+   =================================== */
+
+/* Red button stays red */
+.light-theme .bg-\[\#E10600\] {
+    background-color: #E10600 !important;
+    color: #ffffff !important;
+}
+
+/* Gold elements stay gold but slightly darker */
+.light-theme .bg-\[\#D4AF37\] {
+    background-color: #D4AF37 !important;
+    color: #1a1a1a !important;
+}
+
+/* ===================================
+   SPECIAL CASES
+   =================================== */
+
+/* Hero heading - clean white with subtle shadow */
+.light-theme section:first-of-type h1 {
+    color: #ffffff !important;
+    text-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Hero subtitle - white with shadow */
+.light-theme section:first-of-type p {
+    color: rgba(255, 255, 255, 0.95) !important;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Location badge in hero - semi-transparent white */
+.light-theme section:first-of-type .bg-white\/10 {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+}
+
+.light-theme section:first-of-type .text-white\/90 {
+    color: rgba(255, 255, 255, 0.95) !important;
+}
+
+/* ===================================
+   TRANSITIONS
+   =================================== */
+
+.light-theme * {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease !important;
+}
