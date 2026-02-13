@@ -44,7 +44,7 @@ export function PageLoader() {
             </motion.div>
 
             {/* Loading Bar */}
-            <div className="w-64 h-1 bg-white/10 rounded-full overflow-hidden">
+            <div className="w-64 h-1 bg-white/10 rounded-full overflow-hidden mx-auto">
               <motion.div
                 initial={{ width: "0%" }}
                 animate={{ width: "100%" }}
