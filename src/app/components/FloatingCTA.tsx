@@ -27,7 +27,7 @@ export function FloatingCTA({ onBookClick }: { onBookClick: () => void }) {
         transition={{ delay: 1, type: "spring", stiffness: 260, damping: 20 }}
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
-        className="fixed bottom-24 md:bottom-6 right-6 z-40 w-14 h-14 bg-[#25D366] hover:bg-[#25D366]/90 rounded-full flex items-center justify-center shadow-[0_0_30px_rgba(37,211,102,0.4)] transition-all"
+        className={`fixed right-6 z-40 w-14 h-14 bg-[#25D366] hover:bg-[#25D366]/90 rounded-full flex items-center justify-center shadow-[0_0_30px_rgba(37,211,102,0.4)] transition-all duration-300 ${isVisible ? 'bottom-24 opacity-100 translate-y-0' : 'bottom-6 opacity-0 translate-y-10 pointer-events-none'}`}
       >
         <MessageCircle className="w-7 h-7 text-white" />
       </motion.a>

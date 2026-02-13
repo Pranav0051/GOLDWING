@@ -17,7 +17,7 @@ export function Hero({ onBookClick }: { onBookClick: () => void }) {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 container mx-auto px-4 text-center pt-20">
+      <div className="relative z-10 container mx-auto px-4 text-center pt-32 md:pt-20">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}

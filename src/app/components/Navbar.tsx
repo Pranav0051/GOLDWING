@@ -21,8 +21,8 @@ export function Navbar({ onBookClick }: { onBookClick: () => void }) {
     <motion.nav
       initial={{ y: -100 }}
       animate={{ y: 0 }}
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled
-        ? "bg-[#0B0F19]/90 backdrop-blur-xl border-b border-white/10 py-2"
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled || isMobileMenuOpen
+        ? "bg-[#0B0F19] shadow-lg border-b border-white/10 py-2"
         : "bg-transparent py-4"
         }`}
     >
@@ -75,13 +75,16 @@ export function Navbar({ onBookClick }: { onBookClick: () => void }) {
             </button>
           </div>
 
-          {/* Mobile Menu Button */}
-          <button
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden text-white p-2"
-          >
-            {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
+          {/* Mobile Controls */}
+          <div className="md:hidden flex items-center gap-4">
+            <ThemeToggle />
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="text-white p-2"
+            >
+              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
         </div>
 
         {/* Mobile Menu */}
@@ -90,33 +93,36 @@ export function Navbar({ onBookClick }: { onBookClick: () => void }) {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden mt-4 pb-4 space-y-4"
+            className="md:hidden mt-4 pb-4 space-y-4 max-h-[80vh] overflow-y-auto"
           >
-            <a href="#experiences" className="block text-white/80 hover:text-[#D4AF37] transition-colors">
-              Experiences
-            </a>
-            <a href="#pricing" className="block text-white/80 hover:text-[#D4AF37] transition-colors">
-              Pricing
-            </a>
-            <a href="#safety" className="block text-white/80 hover:text-[#D4AF37] transition-colors">
-              Safety
-            </a>
-            <a href="#testimonials" className="block text-white/80 hover:text-[#D4AF37] transition-colors">
-              Reviews
-            </a>
-            <a href="tel:+911234567890" className="flex items-center gap-2 text-white/80 hover:text-[#D4AF37] transition-colors">
-              <Phone className="w-4 h-4" />
-              <span>+91 123 456 7890</span>
-            </a>
-            <button
-              onClick={() => {
-                onBookClick();
-                setIsMobileMenuOpen(false);
-              }}
-              className="w-full bg-[#E10600] hover:bg-[#E10600]/90 text-white px-6 py-3 rounded-full transition-all"
-            >
-              Book Now
-            </button>
+            <div className="flex flex-col gap-6 text-lg">
+              <a href="#experiences" onClick={() => setIsMobileMenuOpen(false)} className="text-white/80 hover:text-[#D4AF37] transition-colors">
+                Experiences
+              </a>
+              <a href="#pricing" onClick={() => setIsMobileMenuOpen(false)} className="text-white/80 hover:text-[#D4AF37] transition-colors">
+                Pricing
+              </a>
+              <a href="#safety" onClick={() => setIsMobileMenuOpen(false)} className="text-white/80 hover:text-[#D4AF37] transition-colors">
+                Safety
+              </a>
+              <a href="#testimonials" onClick={() => setIsMobileMenuOpen(false)} className="text-white/80 hover:text-[#D4AF37] transition-colors">
+                Reviews
+              </a>
+              <a href="tel:+911234567890" className="flex items-center gap-2 text-white/80 hover:text-[#D4AF37] transition-colors">
+                <Phone className="w-4 h-4" />
+                <span>+91 123 456 7890</span>
+              </a>
+
+              <button
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  onBookClick();
+                }}
+                className="bg-[#E10600] active:bg-[#E10600]/90 text-white px-6 py-3 rounded-full transition-all w-full mt-4"
+              >
+                Book Now
+              </button>
+            </div>
           </motion.div>
         )}
       </div>
