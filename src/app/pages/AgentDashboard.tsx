@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router";
 import { motion } from "motion/react";
-import { Copy, Users, Wallet, Target, Trophy, ArrowRight, UserPlus, Link as LinkIcon, BadgePercent, Home, LogOut } from "lucide-react";
+import { Copy, Users, Target, Trophy, ArrowRight, UserPlus, Link as LinkIcon, BadgePercent, Home, LogOut } from "lucide-react";
 import { useMemo } from "react";
 import { bookingStore } from "../utils/bookingStore";
 
@@ -125,13 +125,7 @@ export function AgentDashboard() {
                 </div>
 
                 {/* Wallet & Stats */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-                    <motion.div whileHover={{ y: -5 }} className="col-span-2 md:col-span-1 bg-[#111827] border border-[#D4AF37]/30 rounded-2xl p-6 shadow-lg relative overflow-hidden">
-                        <Wallet className="absolute -bottom-4 -right-4 w-20 h-20 text-[#D4AF37]/10" />
-                        <h3 className="text-white/60 text-[10px] md:text-sm font-medium mb-1 uppercase tracking-wider">Withdrawable Balance</h3>
-                        <p className="text-2xl md:text-3xl font-bold text-[#D4AF37]">₹{agentData.withdrawableBalance.toLocaleString()}</p>
-                        <button className="mt-4 w-full bg-[#D4AF37] text-[#0B0F19] text-[10px] md:text-xs font-bold py-2 rounded-lg transition-transform active:scale-95">Withdraw Now</button>
-                    </motion.div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
 
                     <motion.div whileHover={{ y: -5 }} className="bg-[#111827] border border-white/10 rounded-2xl p-5 md:p-6 shadow-lg">
                         <h3 className="text-white/60 text-[10px] md:text-sm font-medium mb-1 uppercase tracking-wider">Total Earned</h3>

@@ -4,13 +4,14 @@ import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { motion, AnimatePresence } from "motion/react";
 import {
-    Users, Banknote, Ticket, CalendarClock, TrendingUp,
-    X, Plus, Edit, Trash2, AlertCircle, Home, LogOut, ChevronDown, ChevronUp
+    Users, Banknote, Ticket, CalendarClock, TrendingUp, X, Plus, Edit, Trash2, AlertCircle, Home, LogOut, ChevronDown, ChevronUp, Check
 } from "lucide-react";
 import {
-    PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend
+    PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend
 } from "recharts";
-import { bookingStore, Booking } from "../utils/bookingStore";
+import { bookingStore, type Booking } from "../utils/bookingStore";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 // --- CONSTANTS ---
 const PACKAGES = [
     { id: "basic", name: "Basic Ride", price: 3499 },
@@ -75,8 +76,9 @@ export function AdminDashboard() {
 
     // Form State (Offline Booking)
     const [newBooking, setNewBooking] = useState({
-        customerName: "", persons: 1, slot: "06:00 AM", phone: "", date: "", package: "premium", paymentMethod: "UPI", passengers: [] as { name: string, age: string }[]
+        customerName: "", customerAge: "", persons: 1 as number | "", slot: "06:00 AM", phone: "", date: "", package: "premium", paymentMethod: "UPI", passengers: [] as { name: string, age: string }[]
     });
+    const [offlineBookingSuccess, setOfflineBookingSuccess] = useState<Booking | null>(null);
 
     // --- COMPUTED DATA ---
     const today = new Date().toISOString().split("T")[0];
@@ -124,17 +126,21 @@ export function AdminDashboard() {
     const handleCreateOfflineBooking = (e: React.FormEvent) => {
         e.preventDefault();
 
+        const personsCount = Number(newBooking.persons) || 1;
         const selectedPkg = PACKAGES.find((p) => p.id === newBooking.package);
-        const basicTourAmount = (selectedPkg?.price || 0) * newBooking.persons;
-        const totalInsurance = INSURANCE_PRICE * newBooking.persons;
+        const basicTourAmount = (selectedPkg?.price || 0) * personsCount;
+        const totalInsurance = INSURANCE_PRICE * personsCount;
         const amountBeforeGst = basicTourAmount + totalInsurance;
         const gstAmount = amountBeforeGst * GST_RATE;
         const finalTotalAmount = amountBeforeGst + gstAmount;
 
-        if (!newBooking.customerName || !newBooking.date) return;
+        if (!newBooking.customerName || !newBooking.customerAge || !newBooking.date) {
+            alert("Please fill out customer name, age, and date.");
+            return;
+        }
 
-        if (newBooking.persons > 1) {
-            for (let i = 0; i < newBooking.persons - 1; i++) {
+        if (personsCount > 1) {
+            for (let i = 0; i < personsCount - 1; i++) {
                 if (!newBooking.passengers[i]?.name?.trim() || !newBooking.passengers[i]?.age?.trim()) {
                     alert(`Please fill out the name and age for Passenger ${i + 2}`);
                     return;
@@ -145,8 +151,11 @@ export function AdminDashboard() {
         const createdBooking: Booking = {
             id: `GW-${Math.floor(Math.random() * 900000 + 100000)}`,
             customerName: newBooking.customerName,
-            persons: newBooking.persons,
-            passengers: newBooking.passengers.slice(0, newBooking.persons - 1),
+            persons: personsCount,
+            passengers: [
+                { name: newBooking.customerName, age: newBooking.customerAge },
+                ...newBooking.passengers.slice(0, personsCount - 1)
+            ],
             slot: newBooking.slot,
             category: newBooking.persons === 1 ? "Solo" : newBooking.persons === 2 ? "Couple" : "Group",
             type: "OFFLINE",
@@ -157,8 +166,168 @@ export function AdminDashboard() {
         };
 
         bookingStore.addBooking(createdBooking);
+        setOfflineBookingSuccess(createdBooking);
+        // Do not close modal immediately, wait for user to print or close
+    };
+
+    const handlePrintAdminTicket = async () => {
+        if (!offlineBookingSuccess) return;
+        const b = offlineBookingSuccess;
+
+        /* b doesn't have a package, so we default to premium since offline default is premium */
+        const selectedPkg = PACKAGES[0];
+
+        const docHeight = 340 + (b.persons * 8);
+        const doc = new jsPDF({ format: [100, docHeight], unit: "mm" });
+        doc.setFillColor(255, 255, 255);
+        doc.rect(0, 0, 100, docHeight, "F");
+
+        doc.setTextColor(0, 0, 0);
+        doc.setFont("times", "normal");
+        const payId = `PAY${Math.floor(Math.random() * 9000000 + 1000000)}`;
+
+        let y = 15;
+        const centerX = 50;
+
+        const setCenteredText = (text: string, fontStyle: "normal" | "bold" = "normal", size: number = 10, yOffset: number = 5) => {
+            doc.setFont("times", fontStyle);
+            doc.setFontSize(size);
+            doc.text(text, centerX, y, { align: "center" });
+            y += yOffset;
+        };
+
+        const drawDivider = () => {
+            y += 4;
+            doc.setLineDashPattern([1.5, 1.5], 0);
+            doc.line(15, y - 4, 85, y - 4);
+            doc.setLineDashPattern([], 0);
+            y += 6;
+        };
+
+        setCenteredText("GOLDWING ADVENTURE TOURS", "bold", 10, 6);
+        setCenteredText("Adventure | Safety | Experience", "normal", 9, 6);
+        setCenteredText("Mumbai, Maharashtra - 400001", "normal", 9, 6);
+        setCenteredText("Phone: +91-XXXXXXXXXX", "normal", 9, 6);
+        setCenteredText("GSTIN: 27AAACR5055K1ZQ", "normal", 9, 6);
+
+        drawDivider();
+
+        doc.setFont("times", "normal");
+        doc.setFontSize(10);
+        doc.text(`Booking No: ${b.id}`, 15, y); y += 6;
+        doc.text(`Mobile:     ${newBooking.phone || "N/A"}`, 15, y); y += 6;
+
+        drawDivider();
+
+        doc.text(`Tour: Premium Ride`, 15, y); y += 6;
+        doc.text(`Tour Date: ${b.date.split("-").reverse().join("/")}`, 15, y); y += 6;
+        doc.text(`Slot Time: ${b.slot}`, 15, y); y += 6;
+
+        drawDivider();
+
+        setCenteredText("Passenger Details", "bold", 10, 8);
+
+        doc.setFont("times", "bold");
+        doc.setFontSize(9);
+        doc.text("Passenger Name", 15, y);
+        doc.text("Age", 85, y, { align: "right" });
+        y += 6;
+
+        doc.setFont("times", "normal");
+        doc.setFontSize(10);
+        if (b.passengers && b.passengers.length > 0) {
+            b.passengers.forEach((p, idx) => {
+                doc.text(`P${idx + 1}: ${p.name || "Unknown"}`, 15, y);
+                doc.text(`${p.age || "-"}`, 85, y, { align: "right" });
+                y += 6;
+            });
+        } else {
+            doc.text(`P1: ${b.customerName || "Unknown"}`, 15, y);
+            doc.text(`N/A`, 85, y, { align: "right" });
+            y += 6;
+        }
+
+        drawDivider();
+
+        doc.text("ITEM", 15, y);
+        doc.text("QTY", 55, y, { align: "right" });
+        doc.text("RATE", 70, y, { align: "right" });
+        doc.text("AMT", 85, y, { align: "right" });
+        y += 8;
+
+        drawDivider();
+
+        const basicTourAmount = selectedPkg.price * b.persons;
+        const totalInsurance = INSURANCE_PRICE * b.persons;
+        const amountBeforeGst = basicTourAmount + totalInsurance;
+        const gstAmount = amountBeforeGst * GST_RATE;
+        const finalTotalAmount = amountBeforeGst + gstAmount;
+
+        doc.text("Tour Package", 15, y);
+        doc.text(b.persons.toString(), 55, y, { align: "right" });
+        doc.text(selectedPkg.price.toString(), 70, y, { align: "right" });
+        doc.text(basicTourAmount.toString(), 85, y, { align: "right" });
+        y += 6;
+
+        doc.text("Insurance", 15, y);
+        doc.text(b.persons.toString(), 55, y, { align: "right" });
+        doc.text(INSURANCE_PRICE.toString(), 70, y, { align: "right" });
+        doc.text(totalInsurance.toString(), 85, y, { align: "right" });
+        y += 8;
+
+        drawDivider();
+
+        doc.text("Sub Total", 15, y);
+        doc.text(amountBeforeGst.toString(), 85, y, { align: "right" });
+        y += 6;
+
+        doc.text("GST (18%)", 15, y);
+        doc.text(gstAmount.toFixed(0), 85, y, { align: "right" });
+        y += 8;
+
+        drawDivider();
+
+        doc.text("GRAND TOTAL", 15, y);
+        doc.text(finalTotalAmount.toFixed(0), 85, y, { align: "right" });
+        y += 8;
+
+        drawDivider();
+
+        setCenteredText(`Payment Method: ${b.paymentMethod || "Offline"}`, "normal", 10, 6);
+        setCenteredText(`Payment ID: ${payId}`, "normal", 10, 8);
+
+        drawDivider();
+
+        setCenteredText("Scan QR for Verification", "normal", 10, 6);
+
+        // Safely importing QRCode dynamically
+        try {
+            const QRCode = await import('qrcode');
+            const qrDataUrl = await QRCode.toDataURL(`VERIFY:${b.id}|${payId}`, { width: 150, margin: 1 });
+            doc.addImage(qrDataUrl, "PNG", 35, y, 30, 30);
+            y += 35;
+        } catch (err) {
+            y += 10;
+            setCenteredText("[ QR CODE NOT LOADED ]", "normal", 10, 20);
+            y += 20;
+        }
+
+        drawDivider();
+
+        setCenteredText("This is a computer-generated ticket.", "normal", 10, 6);
+        setCenteredText("Mandatory insurance included.", "normal", 10, 6);
+        setCenteredText("Report 30 minutes before slot time.", "normal", 10, 8);
+        setCenteredText("Thank You & Ride Safe!", "bold", 11, 8);
+
+        drawDivider();
+
+        doc.save(`Goldwing_Ticket_${b.id}.pdf`);
+    };
+
+    const closeOfflineModal = () => {
         setIsOfflineModalOpen(false);
-        setNewBooking({ customerName: "", persons: 1, slot: "06:00 AM", phone: "", date: "", package: "premium", paymentMethod: "UPI", passengers: [] });
+        setOfflineBookingSuccess(null);
+        setNewBooking({ customerName: "", customerAge: "", persons: 1, slot: "06:00 AM", phone: "", date: "", package: "premium", paymentMethod: "UPI", passengers: [] as { name: string, age: string }[] });
     };
 
     return (
@@ -511,126 +680,155 @@ export function AdminDashboard() {
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 exit={{ opacity: 0, scale: 0.95 }}
-                                className="bg-[#111827] border border-white/10 rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden relative"
+                                className={`${isLightTheme ? "bg-white border-gray-200 text-gray-900" : "bg-[#111827] border-white/10 text-white"} border rounded-2xl shadow-2xl w-full max-w-4xl flex flex-col max-h-[90vh] relative overflow-hidden`}
                             >
-                                <div className="p-6 border-b border-white/10 flex justify-between items-center bg-gradient-to-r from-[#111827] to-[#1a2235]">
+                                <div className={`p-5 md:p-6 border-b flex justify-between items-center shrink-0 ${isLightTheme ? "bg-gray-50 border-gray-200" : "bg-gradient-to-r from-[#111827] to-[#1a2235] border-white/10"}`}>
                                     <h3 className="text-xl font-bold">Create Offline Booking</h3>
-                                    <button onClick={() => setIsOfflineModalOpen(false)} className="text-white/50 hover:text-white"><X className="w-5 h-5" /></button>
+                                    <button onClick={closeOfflineModal} className={`${isLightTheme ? "text-gray-400 hover:text-gray-900" : "text-white/50 hover:text-white"}`}><X className="w-5 h-5" /></button>
                                 </div>
-                                <form onSubmit={handleCreateOfflineBooking} className="p-6 flex flex-col md:flex-row gap-6">
-                                    <div className="flex-1 space-y-4">
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="space-y-1">
-                                                <label className="text-sm text-white/70">Customer Name</label>
-                                                <input required type="text" value={newBooking.customerName} onChange={e => setNewBooking({ ...newBooking, customerName: e.target.value })} className="w-full bg-[#0B0F19] border border-white/10 rounded-xl px-4 py-2 focus:outline-none focus:border-[#D4AF37]" placeholder="e.g. John Doe" />
-                                            </div>
-                                            <div className="space-y-1">
-                                                <label className="text-sm text-white/70">Total Persons</label>
-                                                <input required type="number" min="1" value={newBooking.persons} onChange={e => setNewBooking({ ...newBooking, persons: parseInt(e.target.value) || 1 })} className="w-full bg-[#0B0F19] border border-white/10 rounded-xl px-4 py-2 focus:outline-none focus:border-[#D4AF37]" placeholder="1" />
-                                            </div>
+                                {offlineBookingSuccess ? (
+                                    <div className="p-10 flex flex-col items-center justify-center text-center space-y-6">
+                                        <div className="w-20 h-20 bg-green-500/20 text-green-500 rounded-full flex items-center justify-center">
+                                            <Check className="w-10 h-10" />
                                         </div>
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="space-y-1">
-                                                <label className="text-sm text-white/70">Flight Date</label>
-                                                <input required type="date" min={today} value={newBooking.date} onChange={e => setNewBooking({ ...newBooking, date: e.target.value })} className="w-full bg-[#0B0F19] border border-white/10 rounded-xl px-4 py-2 focus:outline-none focus:border-[#D4AF37]" />
-                                            </div>
+                                        <div>
+                                            <h2 className="text-3xl font-bold mb-2">Booking Confirmed!</h2>
+                                            <p className={`${isLightTheme ? "text-gray-600" : "text-white/70"}`}>Ticket <strong className={isLightTheme ? "text-gray-900" : "text-white"}>{offlineBookingSuccess.id}</strong> has been generated successfully.</p>
                                         </div>
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="space-y-1">
-                                                <label className="text-sm text-white/70">Slot Time</label>
-                                                <select required value={newBooking.slot} onChange={e => setNewBooking({ ...newBooking, slot: e.target.value })} className="w-full bg-[#0B0F19] border border-white/10 rounded-xl px-4 py-2 focus:outline-none focus:border-[#D4AF37]">
-                                                    <option value="06:00 AM">06:00 AM</option>
-                                                    <option value="07:30 AM">07:30 AM</option>
-                                                    <option value="04:30 PM">04:30 PM</option>
-                                                    <option value="06:30 PM">06:30 PM</option>
-                                                </select>
-                                            </div>
-                                            <div className="space-y-1">
-                                                <label className="text-sm text-white/70">Payment Method</label>
-                                                <select required value={newBooking.paymentMethod} onChange={e => setNewBooking({ ...newBooking, paymentMethod: e.target.value })} className="w-full bg-[#0B0F19] border border-emerald-500/50 text-emerald-400 rounded-xl px-4 py-2 focus:outline-none focus:ring-1 focus:ring-emerald-500">
-                                                    <option value="UPI">UPI Payment</option>
-                                                    <option value="Card">Credit / Debit Card</option>
-                                                    <option value="Cash">Cash Counter</option>
-                                                </select>
-                                            </div>
+                                        <div className="flex gap-4 mt-4">
+                                            <button onClick={closeOfflineModal} className={`px-6 py-3 rounded-xl font-bold transition border ${isLightTheme ? "border-gray-200 hover:bg-gray-50 text-gray-700" : "border-white/10 hover:bg-white/5 text-white/70"}`}>Close</button>
+                                            <button onClick={handlePrintAdminTicket} className="px-6 py-3 bg-[#D4AF37] hover:bg-[#F7C948] text-black font-bold rounded-xl transition shadow-lg flex items-center">
+                                                <Ticket className="w-5 h-5 mr-2" /> Print PDF Ticket
+                                            </button>
                                         </div>
-
-                                        <div className="space-y-3">
-                                            <label className="text-sm text-white/70 block">Package Selection</label>
-                                            <select required value={newBooking.package} onChange={e => setNewBooking({ ...newBooking, package: e.target.value })} className="w-full bg-[#0B0F19] border border-[#D4AF37] text-[#D4AF37] rounded-xl px-4 py-3 focus:outline-none focus:ring-1 focus:ring-[#D4AF37] font-bold">
-                                                {PACKAGES.map(pkg => <option key={pkg.id} value={pkg.id}>{pkg.name} (₹{pkg.price})</option>)}
-                                            </select>
-                                        </div>
-
-                                        {newBooking.persons > 1 && (
-                                            <div className="space-y-3">
-                                                <label className="text-sm text-white/70">Other Passenger Details</label>
-                                                {Array.from({ length: newBooking.persons - 1 }).map((_, i) => (
-                                                    <div key={i} className="flex gap-4">
-                                                        <input
-                                                            required
-                                                            type="text"
-                                                            placeholder={`Passenger ${i + 2} Name`}
-                                                            className="w-full bg-[#0B0F19] border border-white/10 rounded-xl px-4 py-2 focus:outline-none focus:border-[#D4AF37]"
-                                                            onChange={(e) => {
-                                                                const p = [...newBooking.passengers];
-                                                                p[i] = { ...p[i], name: e.target.value };
-                                                                setNewBooking({ ...newBooking, passengers: p });
-                                                            }}
-                                                        />
-                                                        <input
-                                                            required
-                                                            type="number"
-                                                            placeholder="Age"
-                                                            className="w-24 bg-[#0B0F19] border border-white/10 rounded-xl px-4 py-2 focus:outline-none focus:border-[#D4AF37]"
-                                                            onChange={(e) => {
-                                                                const p = [...newBooking.passengers];
-                                                                p[i] = { ...p[i], age: e.target.value };
-                                                                setNewBooking({ ...newBooking, passengers: p });
-                                                            }}
-                                                        />
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
                                     </div>
-
-                                    {(() => {
-                                        const selectedPkg = PACKAGES.find((p) => p.id === newBooking.package);
-                                        const basicTourAmount = (selectedPkg?.price || 0) * newBooking.persons;
-                                        const totalInsurance = INSURANCE_PRICE * newBooking.persons;
-                                        const amountBeforeGst = basicTourAmount + totalInsurance;
-                                        const gstAmount = amountBeforeGst * GST_RATE;
-                                        const finalTotalAmount = amountBeforeGst + gstAmount;
-
-                                        return (
-                                            <div className="w-full md:w-[320px] flex flex-col justify-between h-full space-y-4">
-                                                <div className="p-5 bg-[#0B0F19] border border-white/10 rounded-xl space-y-4 text-sm text-white/70 font-mono shadow-inner">
-                                                    <div className="flex justify-between">
-                                                        <span>Basic ({newBooking.persons}x ₹{selectedPkg?.price})</span>
-                                                        <span>₹{basicTourAmount}</span>
+                                ) : (
+                                    <form onSubmit={handleCreateOfflineBooking} className="flex-1 overflow-y-auto p-5 md:p-6 flex flex-col md:flex-row gap-6 custom-scrollbar">
+                                        <div className="flex-1 space-y-4">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div className="flex gap-4 space-y-0">
+                                                    <div className="space-y-1 flex-1">
+                                                        <label className={`text-sm ${isLightTheme ? "text-gray-600" : "text-white/70"}`}>Customer Name</label>
+                                                        <input required type="text" value={newBooking.customerName} onChange={e => setNewBooking({ ...newBooking, customerName: e.target.value })} className={`w-full border rounded-xl px-4 py-2 focus:outline-none focus:border-[#D4AF37] ${isLightTheme ? "bg-white border-gray-300 text-gray-900" : "bg-[#0B0F19] border-white/10 text-white"}`} placeholder="e.g. John Doe" />
                                                     </div>
-                                                    <div className="flex justify-between">
-                                                        <span>Insurance ({newBooking.persons}x ₹{INSURANCE_PRICE})</span>
-                                                        <span>₹{totalInsurance}</span>
-                                                    </div>
-                                                    <div className="flex justify-between border-b border-white/10 pb-4">
-                                                        <span>GST (18%)</span>
-                                                        <span>₹{gstAmount.toFixed(0)}</span>
-                                                    </div>
-                                                    <div className="flex justify-between pt-1 font-bold text-xl text-[#D4AF37]">
-                                                        <span>Final Total</span>
-                                                        <span>₹{finalTotalAmount.toFixed(0)}</span>
+                                                    <div className="space-y-1 w-24">
+                                                        <label className={`text-sm ${isLightTheme ? "text-gray-600" : "text-white/70"}`}>Age</label>
+                                                        <input required type="number" min="1" value={newBooking.customerAge} onChange={e => setNewBooking({ ...newBooking, customerAge: e.target.value })} className={`w-full border rounded-xl px-4 py-2 focus:outline-none focus:border-[#D4AF37] ${isLightTheme ? "bg-white border-gray-300 text-gray-900" : "bg-[#0B0F19] border-white/10 text-white"}`} placeholder="25" />
                                                     </div>
                                                 </div>
-                                                <div className="flex flex-col gap-3 mt-auto">
-                                                    <button type="submit" className="w-full py-3 bg-[#D4AF37] hover:bg-[#F7C948] text-black font-bold rounded-xl transition shadow-lg">Create Booking</button>
-                                                    <button type="button" onClick={() => setIsOfflineModalOpen(false)} className="w-full py-3 rounded-xl text-white/70 hover:bg-white/10 transition border border-white/10">Cancel</button>
+                                                <div className="space-y-1">
+                                                    <label className={`text-sm ${isLightTheme ? "text-gray-600" : "text-white/70"}`}>Total Persons</label>
+                                                    <input required type="number" min="1" value={newBooking.persons} onChange={e => setNewBooking({ ...newBooking, persons: e.target.value === '' ? '' : parseInt(e.target.value) })} className={`w-full border rounded-xl px-4 py-2 focus:outline-none focus:border-[#D4AF37] ${isLightTheme ? "bg-white border-gray-300 text-gray-900" : "bg-[#0B0F19] border-white/10 text-white"}`} placeholder="1" />
                                                 </div>
                                             </div>
-                                        );
-                                    })()}
-                                </form>
+
+                                            {Number(newBooking.persons) > 1 && (
+                                                <div className="space-y-3 pt-4 border-t border-gray-200 dark:border-white/10">
+                                                    <label className={`text-sm font-bold ${isLightTheme ? "text-gray-800" : "text-white/90"}`}>Other Passenger Details</label>
+                                                    {Array.from({ length: Number(newBooking.persons) - 1 }).map((_, i) => (
+                                                        <div key={i} className="flex gap-4">
+                                                            <input
+                                                                required
+                                                                type="text"
+                                                                placeholder={`Passenger ${i + 2} Name`}
+                                                                className={`w-full border rounded-xl px-4 py-2 focus:outline-none focus:border-[#D4AF37] ${isLightTheme ? "bg-white border-gray-300 text-gray-900" : "bg-[#0B0F19] border-white/10 text-white"}`}
+                                                                onChange={(e) => {
+                                                                    const p = [...newBooking.passengers];
+                                                                    p[i] = { ...p[i], name: e.target.value };
+                                                                    setNewBooking({ ...newBooking, passengers: p });
+                                                                }}
+                                                            />
+                                                            <input
+                                                                required
+                                                                type="number"
+                                                                placeholder="Age"
+                                                                className={`w-24 border rounded-xl px-4 py-2 focus:outline-none focus:border-[#D4AF37] ${isLightTheme ? "bg-white border-gray-300 text-gray-900" : "bg-[#0B0F19] border-white/10 text-white"}`}
+                                                                onChange={(e) => {
+                                                                    const p = [...newBooking.passengers];
+                                                                    p[i] = { ...p[i], age: e.target.value };
+                                                                    setNewBooking({ ...newBooking, passengers: p });
+                                                                }}
+                                                            />
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div className="space-y-1">
+                                                    <label className={`text-sm ${isLightTheme ? "text-gray-600" : "text-white/70"}`}>Flight Date</label>
+                                                    <input required type="date" min={today} value={newBooking.date} onChange={e => setNewBooking({ ...newBooking, date: e.target.value })} className={`w-full border rounded-xl px-4 py-2 focus:outline-none focus:border-[#D4AF37] ${isLightTheme ? "bg-white border-gray-300 text-gray-900" : "bg-[#0B0F19] border-white/10 text-white"}`} />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className={`text-sm ${isLightTheme ? "text-gray-600" : "text-white/70"}`}>Payment Method</label>
+                                                    <select required value={newBooking.paymentMethod} onChange={e => setNewBooking({ ...newBooking, paymentMethod: e.target.value })} className={`w-full border rounded-xl px-4 py-2 focus:outline-none focus:ring-1 focus:ring-emerald-500 font-bold ${isLightTheme ? "bg-emerald-50 border-emerald-300 text-emerald-700" : "bg-[#0B0F19] border-emerald-500/50 text-emerald-400"}`}>
+                                                        <option value="UPI">UPI Payment</option>
+                                                        <option value="Card">Credit / Debit Card</option>
+                                                        <option value="Cash">Cash Counter</option>
+                                                        <option value="Net Banking">Net Banking</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div className="space-y-1">
+                                                    <label className={`text-sm ${isLightTheme ? "text-gray-600" : "text-white/70"}`}>Slot Time</label>
+                                                    <select required value={newBooking.slot} onChange={e => setNewBooking({ ...newBooking, slot: e.target.value })} className={`w-full border rounded-xl px-4 py-2 focus:outline-none focus:border-[#D4AF37] ${isLightTheme ? "bg-white border-gray-300 text-gray-900" : "bg-[#0B0F19] border-white/10 text-white"}`}>
+                                                        <option value="06:00 AM">06:00 AM</option>
+                                                        <option value="07:30 AM">07:30 AM</option>
+                                                        <option value="04:30 PM">04:30 PM</option>
+                                                        <option value="06:30 PM">06:30 PM</option>
+                                                    </select>
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className={`text-sm ${isLightTheme ? "text-gray-600" : "text-white/70"} block`}>Package Selection</label>
+                                                    <select required value={newBooking.package} onChange={e => setNewBooking({ ...newBooking, package: e.target.value })} className={`w-full border rounded-xl px-4 py-2 focus:outline-none focus:ring-1 focus:ring-[#D4AF37] font-bold ${isLightTheme ? "bg-yellow-50 border-yellow-300 text-yellow-800" : "bg-[#0B0F19] border-[#D4AF37] text-[#D4AF37]"}`}>
+                                                        {PACKAGES.map(pkg => <option key={pkg.id} value={pkg.id}>{pkg.name} (₹{pkg.price})</option>)}
+                                                    </select>
+                                                </div>
+                                            </div>
+
+
+                                        </div>
+
+                                        {(() => {
+                                            const personsCount = Number(newBooking.persons) || 1;
+                                            const selectedPkg = PACKAGES.find((p) => p.id === newBooking.package);
+                                            const basicTourAmount = (selectedPkg?.price || 0) * personsCount;
+                                            const totalInsurance = INSURANCE_PRICE * personsCount;
+                                            const amountBeforeGst = basicTourAmount + totalInsurance;
+                                            const gstAmount = amountBeforeGst * GST_RATE;
+                                            const finalTotalAmount = amountBeforeGst + gstAmount;
+
+                                            return (
+                                                <div className="w-full md:w-[320px] shrink-0">
+                                                    <div className="sticky top-0 flex flex-col gap-4">
+                                                        <div className={`p-5 border rounded-xl space-y-4 text-sm font-mono shadow-inner ${isLightTheme ? "bg-gray-50 border-gray-200 text-gray-600" : "bg-[#0B0F19] border-white/10 text-white/70"}`}>
+                                                            <div className="flex justify-between">
+                                                                <span>Basic ({personsCount}x ₹{selectedPkg?.price})</span>
+                                                                <span className={isLightTheme ? "text-gray-900" : "text-white"}>₹{basicTourAmount}</span>
+                                                            </div>
+                                                            <div className="flex justify-between">
+                                                                <span>Insurance ({personsCount}x ₹{INSURANCE_PRICE})</span>
+                                                                <span className={isLightTheme ? "text-gray-900" : "text-white"}>₹{totalInsurance}</span>
+                                                            </div>
+                                                            <div className={`flex justify-between border-b pb-4 ${isLightTheme ? "border-gray-200" : "border-white/10"}`}>
+                                                                <span>GST (18%)</span>
+                                                                <span className={isLightTheme ? "text-gray-900" : "text-white"}>₹{gstAmount.toFixed(0)}</span>
+                                                            </div>
+                                                            <div className="flex justify-between pt-1 font-bold text-xl text-[#D4AF37]">
+                                                                <span>Final Total</span>
+                                                                <span>₹{finalTotalAmount.toFixed(0)}</span>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex flex-col gap-3">
+                                                            <button type="submit" className="w-full py-3 bg-[#D4AF37] hover:bg-[#F7C948] text-black font-bold rounded-xl transition shadow-lg">Create Booking</button>
+                                                            <button type="button" onClick={closeOfflineModal} className={`w-full py-3 rounded-xl transition border ${isLightTheme ? "border-gray-200 text-gray-600 hover:bg-gray-50" : "border-white/10 text-white/70 hover:bg-white/10"}`}>Cancel</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })()}
+                                    </form>
+                                )}
                             </motion.div>
                         </div>
                     )}
