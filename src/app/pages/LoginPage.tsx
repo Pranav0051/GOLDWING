@@ -22,6 +22,11 @@ export function LoginPage() {
     const handleLogin = (e: React.FormEvent) => {
         e.preventDefault();
 
+        if (!email.trim() || !password.trim()) {
+            alert("Please enter both email and password.");
+            return;
+        }
+
         // Simple logic: admin@... goes to admin, anything else goes to agent
         // Or if the toggle is set to admin, it goes to admin
         if (email.includes("admin") || loginRole === "admin") {

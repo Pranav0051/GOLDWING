@@ -5,7 +5,7 @@ import { useNavigate } from "react-router";
 import { motion, AnimatePresence } from "motion/react";
 import {
     Users, Banknote, Ticket, CalendarClock, TrendingUp,
-    X, Plus, Edit, Trash2, AlertCircle, Home, LogOut
+    X, Plus, Edit, Trash2, AlertCircle, Home, LogOut, ChevronDown, ChevronUp
 } from "lucide-react";
 import {
     PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend
@@ -67,10 +67,15 @@ export function AdminDashboard() {
     // Modal & Delete States
     const [isOfflineModalOpen, setIsOfflineModalOpen] = useState(false);
     const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+    const [expandedBookingId, setExpandedBookingId] = useState<string | null>(null);
+
+    const toggleExpand = (id: string) => {
+        setExpandedBookingId(prev => (prev === id ? null : id));
+    };
 
     // Form State (Offline Booking)
     const [newBooking, setNewBooking] = useState({
-        customerName: "", persons: 1, slot: "06:00 AM", phone: "", date: "", package: "premium", paymentMethod: "UPI", passengers: [] as string[]
+        customerName: "", persons: 1, slot: "06:00 AM", phone: "", date: "", package: "premium", paymentMethod: "UPI", passengers: [] as { name: string, age: string }[]
     });
 
     // --- COMPUTED DATA ---
@@ -128,10 +133,20 @@ export function AdminDashboard() {
 
         if (!newBooking.customerName || !newBooking.date) return;
 
+        if (newBooking.persons > 1) {
+            for (let i = 0; i < newBooking.persons - 1; i++) {
+                if (!newBooking.passengers[i]?.name?.trim() || !newBooking.passengers[i]?.age?.trim()) {
+                    alert(`Please fill out the name and age for Passenger ${i + 2}`);
+                    return;
+                }
+            }
+        }
+
         const createdBooking: Booking = {
             id: `GW-${Math.floor(Math.random() * 900000 + 100000)}`,
             customerName: newBooking.customerName,
             persons: newBooking.persons,
+            passengers: newBooking.passengers.slice(0, newBooking.persons - 1),
             slot: newBooking.slot,
             category: newBooking.persons === 1 ? "Solo" : newBooking.persons === 2 ? "Couple" : "Group",
             type: "OFFLINE",
@@ -150,47 +165,49 @@ export function AdminDashboard() {
         <div className={`min-h-screen transition-colors duration-300 ${isLightTheme ? "bg-gray-50 text-gray-900" : "bg-[#05070A] text-white"} p-4 md:p-8 font-sans`}>
             <div className="max-w-7xl mx-auto space-y-8">
 
-                {/* header & Toggle */}
-                <div className={`flex flex-col md:flex-row items-start md:items-center justify-between pb-6 border-b ${isLightTheme ? "border-gray-200" : "border-white/10"} gap-4`}>
-                    <div className="flex items-center gap-4">
+                {/* Header & Toggle */}
+                <div className={`flex flex-col md:flex-row items-start md:items-center justify-between pb-6 border-b ${isLightTheme ? "border-gray-200" : "border-white/10"} gap-6`}>
+                    <div className="flex items-center gap-4 w-full md:w-auto">
                         <button
                             onClick={() => navigate("/?skipLoader=true")}
-                            className={`w-10 h-10 ${isLightTheme ? "bg-white border-gray-200 text-gray-700 hover:bg-gray-50" : "bg-white/5 border-white/10 text-white/70 hover:bg-white/10"} rounded-xl flex items-center justify-center transition-all border group`}
+                            className={`flex-shrink-0 w-12 h-12 md:w-10 md:h-10 ${isLightTheme ? "bg-white border-gray-200 text-gray-700 hover:bg-gray-50" : "bg-white/5 border-white/10 text-white/70 hover:bg-white/10"} rounded-xl flex items-center justify-center transition-all border group`}
                             title="Back to Home"
                         >
                             <Home className="w-5 h-5 group-hover:text-[#D4AF37]" />
                         </button>
                         <div>
-                            <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-                            <p className={isLightTheme ? "text-gray-500" : "text-white/60"}>Manage bookings, revenue, and system settings</p>
+                            <h1 className="text-2xl md:text-3xl font-bold">Admin Dashboard</h1>
+                            <p className={`text-xs md:sm ${isLightTheme ? "text-gray-500" : "text-white/60"}`}>Manage bookings, revenue, and system settings</p>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
                         <button
                             onClick={() => setIsOfflineModalOpen(true)}
-                            className="bg-[#D4AF37] hover:bg-[#F7C948] text-black font-bold px-5 py-3 rounded-xl flex items-center transition shadow-lg shadow-amber-500/10"
+                            className="bg-[#D4AF37] hover:bg-[#F7C948] text-black font-bold px-5 py-3 rounded-xl flex items-center justify-center transition shadow-lg shadow-amber-500/10 order-2 sm:order-1"
                         >
-                            <Plus className="w-4 h-4 mr-2" /> Create Ticket
+                            <Plus className="w-5 h-5 mr-2" /> Create Ticket
                         </button>
-                        <div className={`flex items-center gap-4 ${isLightTheme ? "bg-white border-gray-200" : "bg-[#111827] border-white/10"} p-3 rounded-xl border`}>
-                            <span className="text-sm font-semibold">Online Booking Status</span>
-                            <button
-                                onClick={() => setIsOnlineBookingOpen(!isOnlineBookingOpen)}
-                                className={`relative inline-flex h-8 w-16 items-center rounded-full transition-colors focus:outline-none ${isOnlineBookingOpen ? 'bg-green-500' : 'bg-red-500'}`}
-                            >
-                                <span className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${isOnlineBookingOpen ? 'translate-x-9' : 'translate-x-1'}`} />
-                            </button>
-                            <span className={`px-3 py-1 text-xs font-bold rounded-full border ${isOnlineBookingOpen ? 'bg-green-500/10 text-green-600 border-green-500/30' : 'bg-red-500/10 text-red-400 border-red-500/30'}`}>
-                                {isOnlineBookingOpen ? "OPEN" : "CLOSED"}
-                            </span>
+                        <div className={`flex items-center justify-between sm:justify-start gap-4 ${isLightTheme ? "bg-white border-gray-200" : "bg-[#111827] border-white/10"} p-3 rounded-xl border order-1 sm:order-2`}>
+                            <span className="text-sm font-semibold">Online Status</span>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => setIsOnlineBookingOpen(!isOnlineBookingOpen)}
+                                    className={`relative inline-flex h-7 w-12 md:h-8 md:w-16 items-center rounded-full transition-colors focus:outline-none ${isOnlineBookingOpen ? 'bg-green-500' : 'bg-red-500'}`}
+                                >
+                                    <span className={`inline-block h-5 w-5 md:h-6 md:w-6 transform rounded-full bg-white transition-transform ${isOnlineBookingOpen ? 'translate-x-[22px] md:translate-x-9' : 'translate-x-1'}`} />
+                                </button>
+                                <span className={`px-2 py-0.5 text-[10px] md:text-xs font-bold rounded-full border ${isOnlineBookingOpen ? 'bg-green-500/10 text-green-600 border-green-500/30' : 'bg-red-500/10 text-red-400 border-red-500/30'}`}>
+                                    {isOnlineBookingOpen ? "OPEN" : "CLOSED"}
+                                </span>
+                            </div>
                         </div>
                         <button
                             onClick={() => {
                                 localStorage.removeItem("isAdminLoggedIn");
                                 navigate("/login?skipLoader=true");
                             }}
-                            className="flex items-center gap-2 px-4 py-3 bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/30 rounded-xl font-bold transition-all group"
+                            className="flex items-center justify-center gap-2 px-5 py-3 bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/30 rounded-xl font-bold transition-all group order-3"
                         >
                             <LogOut className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                             Logout
@@ -316,50 +333,173 @@ export function AdminDashboard() {
                         </div>
                     </div>
 
-                    <div className="overflow-x-auto">
+                    <div className="hidden md:block overflow-x-auto">
                         <table className="w-full text-left text-sm">
+                            <thead className={`text-xs uppercase font-bold tracking-wider ${isLightTheme ? "text-gray-700 bg-gray-100" : "text-white/60 bg-white/5"}`}>
+                                <tr>
+                                    <th className="px-6 py-4 rounded-tl-lg">Ticket No.</th>
+                                    <th className="px-6 py-4">Name & Persons</th>
+                                    <th className="px-6 py-4">Booking Type</th>
+                                    <th className="px-6 py-4">Date</th>
+                                    <th className="px-6 py-4">Slot</th>
+                                    <th className="px-6 py-4">Status</th>
+                                    <th className="px-6 py-4 text-[#D4AF37]">Total Price</th>
+                                    <th className="px-6 py-4 rounded-tr-lg text-right">Actions</th>
+                                </tr>
+                            </thead>
                             <tbody className={`divide-y ${isLightTheme ? "divide-gray-100" : "divide-white/10"}`}>
                                 {filteredBookings.length > 0 ? filteredBookings.map((booking) => (
-                                    <tr key={booking.id} className={`${isLightTheme ? "hover:bg-gray-50" : "hover:bg-white/5"} transition-colors text-white`}>
-                                        <td className={`px-6 py-4 font-bold ${isLightTheme ? "text-gray-900" : "text-white"} whitespace-nowrap`}>{booking.id}</td>
-                                        <td className="px-6 py-4">
-                                            <div className={`font-medium ${isLightTheme ? "text-gray-900" : "text-white"}`}>{booking.customerName}</div>
-                                            <div className={`text-xs ${isLightTheme ? "text-gray-500" : "text-white/50"}`}>{booking.persons} {booking.persons === 1 ? 'Person' : 'Persons'}</div>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <span className={`px-2 py-1 text-xs rounded-lg font-semibold ${booking.type === 'ONLINE' ? 'bg-blue-500/20 text-blue-500 border border-blue-500/20' : 'bg-orange-500/20 text-orange-500 border border-orange-500/20'}`}>
-                                                {booking.type}
-                                            </span>
-                                        </td>
-                                        <td className={`px-6 py-4 tabular-nums ${isLightTheme ? "text-gray-600" : "text-white/80"}`}>{booking.date}</td>
-                                        <td className={`px-6 py-4 font-semibold ${isLightTheme ? "text-gray-700" : "text-white/80"} whitespace-nowrap`}>{booking.slot}</td>
-                                        <td className="px-6 py-4">
-                                            <select
-                                                value={booking.status}
-                                                onChange={(e) => handleStatusChange(booking.id, e.target.value)}
-                                                className={`bg-transparent border ${booking.status === 'Confirmed' ? 'border-green-500 text-green-500' : booking.status === 'Pending' ? 'border-yellow-500 text-yellow-600' : 'border-red-500 text-red-500'} rounded-lg px-2 py-1 text-xs focus:outline-none`}
-                                            >
-                                                <option value="Confirmed" className={isLightTheme ? "bg-white" : "bg-[#111827]"}>Confirmed</option>
-                                                <option value="Pending" className={isLightTheme ? "bg-white" : "bg-[#111827]"}>Pending</option>
-                                                <option value="Cancelled" className={isLightTheme ? "bg-white" : "bg-[#111827]"}>Cancelled</option>
-                                            </select>
-                                        </td>
-                                        <td className="px-6 py-4 text-[#D4AF37] tabular-nums font-semibold">₹{booking.price}</td>
-                                        <td className="px-6 py-4 text-right flex justify-end gap-2 text-white">
-                                            <button className={`${isLightTheme ? "text-gray-400 hover:text-gray-600 hover:bg-gray-100" : "text-white/50 hover:text-white hover:bg-white/10"} p-2 rounded-lg transition`} title="Print Ticket"><Ticket className="w-4 h-4" /></button>
-                                            <button className={`${isLightTheme ? "text-gray-400 hover:text-gray-600 hover:bg-gray-100" : "text-white/50 hover:text-white hover:bg-white/10"} p-2 rounded-lg transition`} title="Edit (Disabled)"><Edit className="w-4 h-4" /></button>
-                                            <button onClick={() => setDeleteConfirmId(booking.id)} className="p-2 text-red-500/70 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition"><Trash2 className="w-4 h-4" /></button>
-                                        </td>
-                                    </tr>
+                                    <React.Fragment key={booking.id}>
+                                        <tr className={`${isLightTheme ? "hover:bg-gray-50" : "hover:bg-white/5"} transition-colors text-white`}>
+                                            <td className={`px-6 py-4 font-bold ${isLightTheme ? "text-gray-900" : "text-white"} whitespace-nowrap`}>{booking.id}</td>
+                                            <td className="px-6 py-4">
+                                                <div className={`font-medium ${isLightTheme ? "text-gray-900" : "text-white"}`}>{booking.customerName}</div>
+                                                <div
+                                                    className={`inline-flex items-center gap-1 text-xs mt-1 select-none ${booking.persons > 1 ? "cursor-pointer hover:text-[#D4AF37] transition-colors" : ""} ${isLightTheme ? "text-gray-500" : "text-white/50"}`}
+                                                    onClick={() => booking.persons > 1 && toggleExpand(booking.id)}
+                                                    title={booking.persons > 1 ? "View passenger details" : ""}
+                                                >
+                                                    {booking.persons} {booking.persons === 1 ? 'Person' : 'Persons'}
+                                                    {booking.persons > 1 && (
+                                                        expandedBookingId === booking.id ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />
+                                                    )}
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <span className={`px-2 py-1 text-xs rounded-lg font-semibold ${booking.type === 'ONLINE' ? 'bg-blue-500/20 text-blue-500 border border-blue-500/20' : 'bg-orange-500/20 text-orange-500 border border-orange-500/20'}`}>
+                                                    {booking.type}
+                                                </span>
+                                            </td>
+                                            <td className={`px-6 py-4 tabular-nums ${isLightTheme ? "text-gray-600" : "text-white/80"}`}>{booking.date}</td>
+                                            <td className={`px-6 py-4 font-semibold ${isLightTheme ? "text-gray-700" : "text-white/80"} whitespace-nowrap`}>{booking.slot}</td>
+                                            <td className="px-6 py-4">
+                                                <select
+                                                    value={booking.status}
+                                                    onChange={(e) => handleStatusChange(booking.id, e.target.value)}
+                                                    className={`bg-transparent border ${booking.status === 'Confirmed' ? 'border-green-500 text-green-500' : booking.status === 'Pending' ? 'border-yellow-500 text-yellow-600' : 'border-red-500 text-red-500'} rounded-lg px-2 py-1 text-xs focus:outline-none`}
+                                                >
+                                                    <option value="Confirmed" className={isLightTheme ? "bg-white text-black" : "bg-[#111827] text-white"}>Confirmed</option>
+                                                    <option value="Pending" className={isLightTheme ? "bg-white text-black" : "bg-[#111827] text-white"}>Pending</option>
+                                                    <option value="Cancelled" className={isLightTheme ? "bg-white text-black" : "bg-[#111827] text-white"}>Cancelled</option>
+                                                </select>
+                                            </td>
+                                            <td className="px-6 py-4 text-[#D4AF37] tabular-nums font-semibold">₹{booking.price}</td>
+                                            <td className="px-6 py-4 text-right flex justify-end gap-2 text-white">
+                                                <button className={`${isLightTheme ? "text-gray-400 hover:text-gray-600 hover:bg-gray-100" : "text-white/50 hover:text-white hover:bg-white/10"} p-2 rounded-lg transition`} title="Print Ticket"><Ticket className="w-4 h-4" /></button>
+                                                <button className={`${isLightTheme ? "text-gray-400 hover:text-gray-600 hover:bg-gray-100" : "text-white/50 hover:text-white hover:bg-white/10"} p-2 rounded-lg transition`} title="Edit (Disabled)"><Edit className="w-4 h-4" /></button>
+                                                <button onClick={() => setDeleteConfirmId(booking.id)} className="p-2 text-red-500/70 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition"><Trash2 className="w-4 h-4" /></button>
+                                            </td>
+                                        </tr>
+                                        {/* Expanded passenger rows */}
+                                        {expandedBookingId === booking.id && booking.passengers && booking.passengers.length > 0 && (
+                                            <tr className={isLightTheme ? "bg-green-50/50" : "bg-white/[0.02]"}>
+                                                <td colSpan={8} className="px-6 py-4">
+                                                    <div className={`p-4 rounded-xl border ${isLightTheme ? "bg-white border-yellow-200" : "bg-[#0B0F19] border-white/10"}`}>
+                                                        <h4 className={`text-xs font-bold uppercase tracking-wider mb-3 ${isLightTheme ? "text-gray-800" : "text-white/70"}`}>Passenger Details</h4>
+                                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                                            {booking.passengers.map((p, idx) => (
+                                                                <div key={idx} className={`flex items-center gap-3 p-3 rounded-lg border ${isLightTheme ? "border-gray-100 bg-gray-50" : "border-white/5 bg-white/5"} transition-colors`}>
+                                                                    <div className="w-8 h-8 rounded-full bg-[#D4AF37]/20 text-[#D4AF37] flex items-center justify-center font-bold text-xs shrink-0">
+                                                                        P{idx + 1}
+                                                                    </div>
+                                                                    <div>
+                                                                        <div className={`text-sm font-semibold truncate ${isLightTheme ? "text-gray-900" : "text-white"}`}>{p.name || "N/A"}</div>
+                                                                        <div className={`text-xs ${isLightTheme ? "text-gray-500" : "text-white/50"}`}>Age: {p.age || "N/A"}</div>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </React.Fragment>
                                 )) : (
                                     <tr>
-                                        <td colSpan={9} className={`px-6 py-12 text-center ${isLightTheme ? "text-gray-400" : "text-white/50"}`}>
+                                        <td colSpan={8} className={`px-6 py-12 text-center ${isLightTheme ? "text-gray-400" : "text-white/50"}`}>
                                             No bookings found matching filters.
                                         </td>
                                     </tr>
                                 )}
                             </tbody>
                         </table>
+                    </div>
+
+                    {/* Mobile Card View for Bookings */}
+                    <div className="md:hidden divide-y divide-white/10 divide-gray-100">
+                        {filteredBookings.length > 0 ? filteredBookings.map((booking) => (
+                            <div key={booking.id} className={`p-5 space-y-4 ${isLightTheme ? "bg-white" : "bg-[#111827]"}`}>
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <div className={`text-xs font-bold ${isLightTheme ? "text-gray-400" : "text-white/30"}`}>{booking.id}</div>
+                                        <div className={`text-lg font-bold ${isLightTheme ? "text-gray-900" : "text-white"}`}>{booking.customerName}</div>
+                                        <div
+                                            className={`inline-flex items-center gap-1 text-xs mt-0.5 select-none ${booking.persons > 1 ? "cursor-pointer text-[#D4AF37]" : ""} ${isLightTheme ? "text-gray-500" : "text-white/50"}`}
+                                            onClick={() => booking.persons > 1 && toggleExpand(booking.id)}
+                                        >
+                                            {booking.persons} {booking.persons === 1 ? 'Person' : 'Persons'}
+                                            {booking.persons > 1 && (
+                                                expandedBookingId === booking.id ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <button className={`${isLightTheme ? "bg-gray-100 text-gray-600" : "bg-white/5 text-white/50"} p-2 rounded-lg`}><Ticket className="w-4 h-4" /></button>
+                                        <button onClick={() => setDeleteConfirmId(booking.id)} className="bg-red-500/10 text-red-500 p-2 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4 text-sm">
+                                    <div>
+                                        <p className={`text-[10px] uppercase font-bold tracking-wider ${isLightTheme ? "text-gray-400" : "text-white/30"}`}>Type & Date</p>
+                                        <div className="mt-1 flex items-center gap-2">
+                                            <span className={`px-2 py-0.5 text-[10px] rounded-md font-bold ${booking.type === 'ONLINE' ? 'bg-blue-500/20 text-blue-500' : 'bg-orange-500/20 text-orange-500'}`}>
+                                                {booking.type}
+                                            </span>
+                                            <span className={isLightTheme ? "text-gray-600" : "text-white/70"}>{booking.date}</span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <p className={`text-[10px] uppercase font-bold tracking-wider ${isLightTheme ? "text-gray-400" : "text-white/30"}`}>Slot & Total</p>
+                                        <div className="mt-1">
+                                            <span className={`font-bold ${isLightTheme ? "text-gray-800" : "text-white"}`}>{booking.slot}</span>
+                                            <span className="mx-1.5 opacity-30 text-white">|</span>
+                                            <span className="text-[#D4AF37] font-bold">₹{booking.price}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {expandedBookingId === booking.id && booking.passengers && booking.passengers.length > 0 && (
+                                    <div className="pt-2">
+                                        <div className={`p-3 rounded-xl border ${isLightTheme ? "bg-gray-50 border-yellow-200" : "bg-[#0B0F19] border-white/10"}`}>
+                                            <h4 className={`text-[10px] font-bold uppercase tracking-wider mb-2 ${isLightTheme ? "text-gray-800" : "text-white/70"}`}>Passenger Details</h4>
+                                            <div className="space-y-2">
+                                                {booking.passengers.map((p, idx) => (
+                                                    <div key={idx} className={`flex items-center justify-between p-2 rounded-lg border ${isLightTheme ? "border-gray-100 bg-white" : "border-white/5 bg-white/5"}`}>
+                                                        <div className={`text-xs font-semibold ${isLightTheme ? "text-gray-900" : "text-white"}`}>P{idx + 1}. {p.name || "N/A"}</div>
+                                                        <div className={`text-[10px] ${isLightTheme ? "text-gray-500" : "text-white/50"}`}>Age: {p.age || "-"}</div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className="pt-2">
+                                    <select
+                                        value={booking.status}
+                                        onChange={(e) => handleStatusChange(booking.id, e.target.value)}
+                                        className={`w-full bg-transparent border ${booking.status === 'Confirmed' ? 'border-green-500 text-green-500' : booking.status === 'Pending' ? 'border-yellow-500 text-yellow-600' : 'border-red-500 text-red-500'} rounded-xl px-4 py-2.5 text-sm font-bold focus:outline-none`}
+                                    >
+                                        <option value="Confirmed" className={isLightTheme ? "bg-white text-gray-900" : "bg-[#111827] text-white"}>Confirmed</option>
+                                        <option value="Pending" className={isLightTheme ? "bg-white text-gray-900" : "bg-[#111827] text-white"}>Pending</option>
+                                        <option value="Cancelled" className={isLightTheme ? "bg-white text-gray-900" : "bg-[#111827] text-white"}>Cancelled</option>
+                                    </select>
+                                </div>
+                            </div>
+                        )) : (
+                            <div className={`p-10 text-center ${isLightTheme ? "text-gray-400" : "text-white/30"}`}>No bookings found.</div>
+                        )}
                     </div>
                 </div>
 
@@ -423,20 +563,33 @@ export function AdminDashboard() {
                                         </div>
 
                                         {newBooking.persons > 1 && (
-                                            <div className="space-y-2">
-                                                <label className="text-sm text-white/70">Other Passenger Names</label>
+                                            <div className="space-y-3">
+                                                <label className="text-sm text-white/70">Other Passenger Details</label>
                                                 {Array.from({ length: newBooking.persons - 1 }).map((_, i) => (
-                                                    <input
-                                                        key={i}
-                                                        type="text"
-                                                        placeholder={`Passenger ${i + 2} Name`}
-                                                        className="w-full bg-[#0B0F19] border border-white/10 rounded-xl px-4 py-2 focus:outline-none focus:border-[#D4AF37]"
-                                                        onChange={(e) => {
-                                                            const p = [...newBooking.passengers];
-                                                            p[i] = e.target.value;
-                                                            setNewBooking({ ...newBooking, passengers: p });
-                                                        }}
-                                                    />
+                                                    <div key={i} className="flex gap-4">
+                                                        <input
+                                                            required
+                                                            type="text"
+                                                            placeholder={`Passenger ${i + 2} Name`}
+                                                            className="w-full bg-[#0B0F19] border border-white/10 rounded-xl px-4 py-2 focus:outline-none focus:border-[#D4AF37]"
+                                                            onChange={(e) => {
+                                                                const p = [...newBooking.passengers];
+                                                                p[i] = { ...p[i], name: e.target.value };
+                                                                setNewBooking({ ...newBooking, passengers: p });
+                                                            }}
+                                                        />
+                                                        <input
+                                                            required
+                                                            type="number"
+                                                            placeholder="Age"
+                                                            className="w-24 bg-[#0B0F19] border border-white/10 rounded-xl px-4 py-2 focus:outline-none focus:border-[#D4AF37]"
+                                                            onChange={(e) => {
+                                                                const p = [...newBooking.passengers];
+                                                                p[i] = { ...p[i], age: e.target.value };
+                                                                setNewBooking({ ...newBooking, passengers: p });
+                                                            }}
+                                                        />
+                                                    </div>
                                                 ))}
                                             </div>
                                         )}

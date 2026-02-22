@@ -48,7 +48,7 @@ export function Hero({ onBookClick }: { onBookClick: () => void }) {
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 1 }}
-            className="text-6xl md:text-8xl lg:text-9xl font-bold tracking-tight wave-text"
+            className="text-5xl md:text-8xl lg:text-9xl font-bold tracking-tight wave-text"
             style={{
               fontFamily: "'Pacifico', cursive",
               color: '#FFFFFF',

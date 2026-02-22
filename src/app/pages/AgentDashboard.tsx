@@ -50,10 +50,10 @@ export function AgentDashboard() {
             <div className="max-w-6xl mx-auto space-y-6">
 
                 {/* Header Navigation */}
-                <div className="flex items-center justify-between mb-8">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
                     <Link
                         to="/?skipLoader=true"
-                        className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 text-white/70 hover:text-white border border-white/10 rounded-xl transition-all group"
+                        className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 text-white/70 hover:text-white border border-white/10 rounded-xl transition-all group"
                     >
                         <Home className="w-4 h-4 group-hover:scale-110 transition-transform" />
                         Back to Home
@@ -61,7 +61,7 @@ export function AgentDashboard() {
 
                     <button
                         onClick={() => navigate("/login?skipLoader=true")}
-                        className="flex items-center gap-2 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-xl font-bold transition-all group"
+                        className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-xl font-bold transition-all group"
                     >
                         <LogOut className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                         Logout
@@ -125,34 +125,34 @@ export function AgentDashboard() {
                 </div>
 
                 {/* Wallet & Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    <motion.div whileHover={{ y: -5 }} className="bg-[#111827] border border-[#D4AF37]/30 rounded-2xl p-6 shadow-lg relative overflow-hidden">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+                    <motion.div whileHover={{ y: -5 }} className="col-span-2 md:col-span-1 bg-[#111827] border border-[#D4AF37]/30 rounded-2xl p-6 shadow-lg relative overflow-hidden">
                         <Wallet className="absolute -bottom-4 -right-4 w-20 h-20 text-[#D4AF37]/10" />
-                        <h3 className="text-white/60 text-sm font-medium mb-1">Withdrawable Balance</h3>
-                        <p className="text-3xl font-bold text-[#D4AF37]">₹{agentData.withdrawableBalance.toLocaleString()}</p>
-                        <button className="mt-4 w-full bg-[#D4AF37] text-black text-xs font-bold py-2 rounded-lg">Withdraw Now</button>
+                        <h3 className="text-white/60 text-[10px] md:text-sm font-medium mb-1 uppercase tracking-wider">Withdrawable Balance</h3>
+                        <p className="text-2xl md:text-3xl font-bold text-[#D4AF37]">₹{agentData.withdrawableBalance.toLocaleString()}</p>
+                        <button className="mt-4 w-full bg-[#D4AF37] text-[#0B0F19] text-[10px] md:text-xs font-bold py-2 rounded-lg transition-transform active:scale-95">Withdraw Now</button>
                     </motion.div>
 
-                    <motion.div whileHover={{ y: -5 }} className="bg-[#111827] border border-white/10 rounded-2xl p-6 shadow-lg">
-                        <h3 className="text-white/60 text-sm font-medium mb-1">Total Earned</h3>
-                        <p className="text-2xl font-bold text-white mb-2">₹{agentData.commissionEarned.toLocaleString()}</p>
-                        <p className="text-white/40 text-xs">Pending: ₹{agentData.pendingCommission.toLocaleString()}</p>
+                    <motion.div whileHover={{ y: -5 }} className="bg-[#111827] border border-white/10 rounded-2xl p-5 md:p-6 shadow-lg">
+                        <h3 className="text-white/60 text-[10px] md:text-sm font-medium mb-1 uppercase tracking-wider">Total Earned</h3>
+                        <p className="text-xl md:text-2xl font-bold text-white mb-2">₹{agentData.commissionEarned.toLocaleString()}</p>
+                        <p className="text-white/40 text-[10px]">Pending: ₹{agentData.pendingCommission.toLocaleString()}</p>
                     </motion.div>
 
-                    <motion.div whileHover={{ y: -5 }} className="bg-[#111827] border border-white/10 rounded-2xl p-6 shadow-lg">
-                        <h3 className="text-white/60 text-sm font-medium mb-1">Total Bookings</h3>
-                        <p className="text-2xl font-bold text-white">{agentData.totalBookings}</p>
+                    <motion.div whileHover={{ y: -5 }} className="bg-[#111827] border border-white/10 rounded-2xl p-5 md:p-6 shadow-lg">
+                        <h3 className="text-white/60 text-[10px] md:text-sm font-medium mb-1 uppercase tracking-wider">Bookings</h3>
+                        <p className="text-xl md:text-2xl font-bold text-white">{agentData.totalBookings}</p>
                         <div className="mt-3 w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
                             <div className="bg-blue-500 h-full" style={{ width: `${(agentData.totalBookings / 100) * 100}%` }}></div>
                         </div>
                     </motion.div>
 
-                    <motion.div whileHover={{ y: -5 }} className="bg-[#111827] border border-white/10 rounded-2xl p-6 shadow-lg">
-                        <h3 className="text-white/60 text-sm font-medium mb-1">Seats Sold</h3>
-                        <p className="text-2xl font-bold text-white flex items-center">
-                            <Users className="w-5 h-5 mr-2 text-[#D4AF37]" /> {agentData.totalSeatsSold}
+                    <motion.div whileHover={{ y: -5 }} className="bg-[#111827] border border-white/10 rounded-2xl p-5 md:p-6 shadow-lg">
+                        <h3 className="text-white/60 text-[10px] md:text-sm font-medium mb-1 uppercase tracking-wider">Seats Sold</h3>
+                        <p className="text-xl md:text-2xl font-bold text-white flex items-center">
+                            <Users className="w-4 h-4 mr-1 md:mr-2 text-[#D4AF37]" /> {agentData.totalSeatsSold}
                         </p>
-                        <p className="text-white/40 text-xs mt-2 flex items-center"><BadgePercent className="w-3 h-3 mr-1" /> ₹200 commission/seat</p>
+                        <p className="text-white/40 text-[9px] md:text-[10px] mt-2 flex items-center"><BadgePercent className="w-3 h-3 mr-1" /> ₹200/seat</p>
                     </motion.div>
                 </div>
 

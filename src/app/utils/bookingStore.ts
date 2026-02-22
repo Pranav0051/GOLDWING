@@ -2,6 +2,7 @@ export interface Booking {
     id: string;
     customerName: string;
     persons: number;
+    passengers?: { name: string, age: string }[];
     slot: string;
     category: string;
     type: 'ONLINE' | 'OFFLINE';

@@ -42,6 +42,7 @@ export function BookingPage() {
     const [passengers, setPassengers] = useState([{ name: "", age: "" }]);
     const [agentCode, setAgentCode] = useState(refCode || "");
     const [formData, setFormData] = useState({ name: "", email: "", phone: "" });
+    const [paymentMethod, setPaymentMethod] = useState("UPI");
 
     // Sync passenger inputs with traveler count
     useEffect(() => {
@@ -101,6 +102,24 @@ export function BookingPage() {
         }
     }, [refCode]);
 
+    const validateStep3 = () => {
+        for (let i = 0; i < passengers.length; i++) {
+            if (!passengers[i].name.trim() || !passengers[i].age.trim() || parseInt(passengers[i].age) <= 0) {
+                alert(`Please provide a valid name and age for Traveler ${i + 1}.`);
+                return false;
+            }
+        }
+        if (!formData.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+            alert("Please provide a valid email address.");
+            return false;
+        }
+        if (!formData.phone.trim() || formData.phone.length < 10) {
+            alert("Please provide a valid 10-digit mobile number.");
+            return false;
+        }
+        return true;
+    };
+
     const handlePayment = () => {
         const id = bookingId || `GW-${Math.floor(Math.random() * 900000 + 100000)}`;
         if (!bookingId) setBookingId(id);
@@ -111,13 +130,14 @@ export function BookingPage() {
             id,
             customerName: formData.name || "Customer",
             persons: travelers,
+            passengers: passengers,
             slot: slotTime,
             category: travelers === 1 ? "Solo" : travelers === 2 ? "Couple" : "Group",
             type: source === "center" ? "OFFLINE" : "ONLINE",
             date: selectedDate,
             status: "Confirmed",
             price: Math.round(finalTotalAmount),
-            paymentMethod: source === "center" ? "Cash" : "Card",
+            paymentMethod: paymentMethod,
             agentRef: agentCode || undefined
         };
 
@@ -477,7 +497,7 @@ export function BookingPage() {
 
                                 <div className="flex gap-4">
                                     <button onClick={() => setStep(2)} className="w-1/3 bg-gray-200 dark:bg-white/10 text-gray-800 dark:text-white font-bold py-4 rounded-xl hover:bg-gray-300 dark:hover:bg-white/20 transition">Back</button>
-                                    <button onClick={() => setStep(4)} className="w-2/3 bg-[#D4AF37] text-black font-bold py-4 rounded-xl hover:bg-[#F7C948] transition">Proceed to Billing</button>
+                                    <button onClick={() => { if (validateStep3()) setStep(4); }} className="w-2/3 bg-[#D4AF37] text-black font-bold py-4 rounded-xl hover:bg-[#F7C948] transition">Proceed to Billing</button>
                                 </div>
                             </motion.div>
                         )}
@@ -513,7 +533,25 @@ export function BookingPage() {
                                     <p>Booking logic assigns you a temporary seat lock for 5 minutes. If payment is unsuccessful, the seat returns to the pool automatically.</p>
                                 </div>
 
-                                <div className="flex gap-4">
+                                <div className="space-y-4 pt-2">
+                                    <p className="text-gray-700 dark:text-white/80 font-bold">Select Payment Method</p>
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                        {['UPI', 'Card', 'Net Banking', ...(source === 'center' ? ['Cash'] : [])].map(method => (
+                                            <button
+                                                key={method}
+                                                onClick={() => setPaymentMethod(method)}
+                                                className={`px-4 py-3 rounded-xl border-2 font-bold transition-all ${paymentMethod === method
+                                                    ? "border-[#D4AF37] bg-[#D4AF37]/10 text-yellow-700 dark:text-[#D4AF37]"
+                                                    : "border-gray-200 dark:border-white/10 text-gray-600 dark:text-white/70 bg-white dark:bg-[#111827] hover:border-gray-300 dark:hover:border-white/30"
+                                                    }`}
+                                            >
+                                                {method}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-4 pt-4 border-t border-gray-200 dark:border-white/10">
                                     <button onClick={() => setStep(3)} className="w-1/3 bg-gray-200 dark:bg-white/10 text-gray-800 dark:text-white font-bold py-4 rounded-xl hover:bg-gray-300 dark:hover:bg-white/20 transition">Back</button>
                                     <button onClick={handlePayment} className="w-2/3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-green-500/50 transition flex items-center justify-center">
                                         <CreditCard className="w-5 h-5 mr-2" /> Pay ₹{finalTotalAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })}
