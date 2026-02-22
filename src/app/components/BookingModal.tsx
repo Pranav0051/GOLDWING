@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { X, Calendar, Users, CreditCard, Check, Sparkles } from "lucide-react";
+import { X, Calendar, Check } from "lucide-react";
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -99,8 +99,8 @@ export function BookingModal({ isOpen, onClose, selectedPackageId }: BookingModa
                     key={pkg.id}
                     onClick={() => setSelectedPackage(pkg.id)}
                     className={`w-full p-4 rounded-2xl border-2 transition-all text-left ${selectedPackage === pkg.id
-                        ? "border-[#D4AF37] bg-[#D4AF37]/10"
-                        : "border-white/10 bg-white/5 hover:border-white/20"
+                      ? "border-[#D4AF37] bg-[#D4AF37]/10"
+                      : "border-white/10 bg-white/5 hover:border-white/20"
                       }`}
                   >
                     <div className="flex items-center justify-between">

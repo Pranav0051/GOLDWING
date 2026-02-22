@@ -1,0 +1,10 @@
+src/app/components/BookingModal.tsx(5,23): error TS6133: 'Users' is declared but its value is never read.
+src/app/components/BookingModal.tsx(5,30): error TS6133: 'CreditCard' is declared but its value is never read.
+src/app/components/BookingModal.tsx(5,49): error TS6133: 'Sparkles' is declared but its value is never read.
+src/app/components/Footer.tsx(3,1): error TS6133: 'motion' is declared but its value is never read.
+src/app/components/SafetySection.tsx(4,45): error TS6133: 'Calendar' is declared but its value is never read.
+src/app/components/Testimonials.tsx(3,21): error TS6133: 'useRef' is declared but its value is never read.
+src/app/pages/LandingPage.tsx(24,15): error TS6133: 'state' is declared but its value is never read.
+src/app/pages/LandingPage.tsx(74,11): error TS6133: 'cameraTarget' is declared but its value is never read.
+src/app/pages/LandingPage.tsx(138,25): error TS2322: Type '{ key: number; opacity: number; speed: number; width: number; depth: number; segments: number; position: [number, number, number]; }' is not assignable to type 'IntrinsicAttributes & Omit<Mutable<Overwrite<Partial<Overwrite<Group<Object3DEventMap>, MathProps<Group<Object3DEventMap>> & ReactProps<...> & Partial<...>>>, Omit<...>>>, "ref"> & { ...; } & RefAttributes<...>'.
+  Property 'width' does not exist on type 'IntrinsicAttributes & Omit<Mutable<Overwrite<Partial<Overwrite<Group<Object3DEventMap>, MathProps<Group<Object3DEventMap>> & ReactProps<...> & Partial<...>>>, Omit<...>>>, "ref"> & { ...; } & RefAttributes<...>'.

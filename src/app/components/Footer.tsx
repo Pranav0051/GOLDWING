@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "motion/react";
+
 import { MapPin, Phone, Mail, Facebook, Instagram, Twitter, Youtube } from "lucide-react";
 
 export function Footer() {

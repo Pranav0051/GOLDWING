@@ -4,13 +4,28 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 
 export function PageLoader() {
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      return params.get("skipLoader") !== "true";
+    }
+    return true;
+  });
 
   useEffect(() => {
+    // Check if we should skip the loader
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("skipLoader") === "true") {
+      setIsLoading(false);
+      return;
+    }
+
     // Simulate loading
-    setTimeout(() => {
+    const timer = setTimeout(() => {
       setIsLoading(false);
     }, 2000);
+
+    return () => clearTimeout(timer);
   }, []);
 
   return (

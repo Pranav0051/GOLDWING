@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "motion/react";
 import { Star, ChevronLeft, ChevronRight, Quote } from "lucide-react";
 
@@ -177,11 +177,10 @@ export function Testimonials() {
                     setIsAutoPlaying(false);
                     setCurrentIndex(index);
                   }}
-                  className={`transition-all ${
-                    index === currentIndex
+                  className={`transition-all ${index === currentIndex
                       ? "w-8 h-2 bg-[#D4AF37]"
                       : "w-2 h-2 bg-white/30 hover:bg-white/50"
-                  } rounded-full`}
+                    } rounded-full`}
                 />
               ))}
             </div>

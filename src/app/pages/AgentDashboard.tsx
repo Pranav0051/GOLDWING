@@ -1,0 +1,162 @@
+"use client";
+
+import { useState } from "react";
+import { useNavigate, Link } from "react-router";
+import { motion } from "motion/react";
+import { Copy, Users, Wallet, Target, Trophy, ArrowRight, UserPlus, Link as LinkIcon, BadgePercent, Home, LogOut } from "lucide-react";
+import { useMemo } from "react";
+import { bookingStore } from "../utils/bookingStore";
+
+export function AgentDashboard() {
+    const navigate = useNavigate();
+    const [copied, setCopied] = useState(false);
+
+    // Dynamic Agent Stats
+    const agentData = useMemo(() => {
+        const allBookings = bookingStore.getBookings();
+        const agentBookings = allBookings.filter(b => b.agentRef === "AGT105" && b.status !== "Cancelled");
+
+        const totalBookings = agentBookings.length;
+        const totalSeatsSold = agentBookings.reduce((sum, b) => sum + b.persons, 0);
+        const commissionEarned = totalSeatsSold * 200; // ₹200 per seat
+
+        return {
+            id: "AGT105",
+            name: "Rahul Sharma",
+            level: totalBookings > 100 ? "Gold" : totalBookings > 50 ? "Silver" : "Bronze",
+            totalBookings,
+            totalSeatsSold,
+            commissionEarned,
+            pendingCommission: totalSeatsSold * 50, // Mock pending
+            withdrawableBalance: commissionEarned * 0.6, // Mock balance
+        };
+    }, []);
+
+    const referralLink = `${window.location.origin}/book?ref=${agentData.id}`;
+
+    const handleCopy = () => {
+        navigator.clipboard.writeText(referralLink);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+
+    const startAssistedBooking = () => {
+        // Navigate to booking system pre-filled with agent code
+        navigate(`/book?ref=${agentData.id}`);
+    };
+
+    return (
+        <div className="min-h-screen bg-[#0B0F19] p-4 md:p-8 font-sans text-white">
+            <div className="max-w-6xl mx-auto space-y-6">
+
+                {/* Header Navigation */}
+                <div className="flex items-center justify-between mb-8">
+                    <Link
+                        to="/?skipLoader=true"
+                        className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 text-white/70 hover:text-white border border-white/10 rounded-xl transition-all group"
+                    >
+                        <Home className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                        Back to Home
+                    </Link>
+
+                    <button
+                        onClick={() => navigate("/login?skipLoader=true")}
+                        className="flex items-center gap-2 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-xl font-bold transition-all group"
+                    >
+                        <LogOut className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                        Logout
+                    </button>
+                </div>
+
+                {/* Header & Level badge */}
+                <div className="flex flex-col md:flex-row items-center justify-between bg-[#111827] border border-white/10 rounded-2xl p-6 shadow-xl">
+                    <div className="flex items-center space-x-4">
+                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-gray-700 to-[#111827] border-2 border-[#D4AF37] flex items-center justify-center text-2xl font-bold shadow-[0_0_15px_rgba(212,175,55,0.3)]">
+                            {agentData.name.charAt(0)}
+                        </div>
+                        <div>
+                            <h1 className="text-2xl font-bold text-white">{agentData.name}</h1>
+                            <p className="text-[#D4AF37] font-semibold flex items-center">
+                                Agent ID: {agentData.id}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="mt-4 md:mt-0 flex flex-col items-center p-4 bg-gradient-to-r from-gray-300 to-gray-400 rounded-xl text-black">
+                        <Trophy className="w-8 h-8 mb-1 text-gray-800" />
+                        <span className="font-bold text-sm tracking-widest uppercase">{agentData.level} AGENT</span>
+                        <span className="text-xs text-gray-800 mt-1">{100 - agentData.totalBookings} to Gold</span>
+                    </div>
+                </div>
+
+                {/* Action Grid (Referral & Assisted Booking) */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-[#111827] border border-white/10 rounded-2xl p-6 relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                            <LinkIcon className="w-24 h-24 text-white" />
+                        </div>
+                        <h2 className="text-xl font-bold mb-2">Your Referral Link</h2>
+                        <p className="text-white/60 text-sm mb-4">Share this link to auto-track cookies for 7 days. If they book, you earn!</p>
+
+                        <div className="flex bg-white/5 border border-white/10 rounded-xl overflow-hidden p-1">
+                            <input
+                                type="text"
+                                readOnly
+                                value={referralLink}
+                                className="bg-transparent w-full px-4 text-white/80 focus:outline-none"
+                            />
+                            <button onClick={handleCopy} className="bg-[#D4AF37] text-black px-4 py-2 rounded-lg font-bold flex items-center shrink-0 hover:bg-[#F7C948] transition">
+                                {copied ? <span className="flex items-center"><Target className="w-4 h-4 mr-1" /> Copied</span> : <span className="flex items-center"><Copy className="w-4 h-4 mr-1" /> Copy</span>}
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="bg-gradient-to-br from-indigo-900 to-purple-900 border border-purple-500/30 rounded-2xl p-6 relative overflow-hidden group hover:shadow-[0_0_30px_rgba(168,85,247,0.3)] transition-shadow">
+                        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                            <UserPlus className="w-24 h-24 text-white" />
+                        </div>
+                        <h2 className="text-xl font-bold mb-2 text-white">Assisted Booking</h2>
+                        <p className="text-white/80 text-sm mb-4">Book on behalf of a walk-in or offline customer. Booking is strictly tagged to your ID.</p>
+
+                        <button onClick={startAssistedBooking} className="mt-2 w-full bg-white text-indigo-900 font-bold py-3 rounded-xl flex items-center justify-center hover:bg-white/90 transition shadow-xl">
+                            Create Booking for Customer <ArrowRight className="w-5 h-5 ml-2" />
+                        </button>
+                    </div>
+                </div>
+
+                {/* Wallet & Stats */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <motion.div whileHover={{ y: -5 }} className="bg-[#111827] border border-[#D4AF37]/30 rounded-2xl p-6 shadow-lg relative overflow-hidden">
+                        <Wallet className="absolute -bottom-4 -right-4 w-20 h-20 text-[#D4AF37]/10" />
+                        <h3 className="text-white/60 text-sm font-medium mb-1">Withdrawable Balance</h3>
+                        <p className="text-3xl font-bold text-[#D4AF37]">₹{agentData.withdrawableBalance.toLocaleString()}</p>
+                        <button className="mt-4 w-full bg-[#D4AF37] text-black text-xs font-bold py-2 rounded-lg">Withdraw Now</button>
+                    </motion.div>
+
+                    <motion.div whileHover={{ y: -5 }} className="bg-[#111827] border border-white/10 rounded-2xl p-6 shadow-lg">
+                        <h3 className="text-white/60 text-sm font-medium mb-1">Total Earned</h3>
+                        <p className="text-2xl font-bold text-white mb-2">₹{agentData.commissionEarned.toLocaleString()}</p>
+                        <p className="text-white/40 text-xs">Pending: ₹{agentData.pendingCommission.toLocaleString()}</p>
+                    </motion.div>
+
+                    <motion.div whileHover={{ y: -5 }} className="bg-[#111827] border border-white/10 rounded-2xl p-6 shadow-lg">
+                        <h3 className="text-white/60 text-sm font-medium mb-1">Total Bookings</h3>
+                        <p className="text-2xl font-bold text-white">{agentData.totalBookings}</p>
+                        <div className="mt-3 w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
+                            <div className="bg-blue-500 h-full" style={{ width: `${(agentData.totalBookings / 100) * 100}%` }}></div>
+                        </div>
+                    </motion.div>
+
+                    <motion.div whileHover={{ y: -5 }} className="bg-[#111827] border border-white/10 rounded-2xl p-6 shadow-lg">
+                        <h3 className="text-white/60 text-sm font-medium mb-1">Seats Sold</h3>
+                        <p className="text-2xl font-bold text-white flex items-center">
+                            <Users className="w-5 h-5 mr-2 text-[#D4AF37]" /> {agentData.totalSeatsSold}
+                        </p>
+                        <p className="text-white/40 text-xs mt-2 flex items-center"><BadgePercent className="w-3 h-3 mr-1" /> ₹200 commission/seat</p>
+                    </motion.div>
+                </div>
+
+            </div>
+        </div>
+    );
+}

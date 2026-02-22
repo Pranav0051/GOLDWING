@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
-import { ShieldCheck, Clock, Users, Weight, Calendar, CloudRain } from "lucide-react";
+import { ShieldCheck, Clock, Users, Weight, CloudRain } from "lucide-react";
 
 const safetyPoints = [
   {
