@@ -1,23 +1,29 @@
-"use client";
-
+import React, { Suspense } from "react";
 import "./theme.css";
 import { BrowserRouter, Routes, Route } from "react-router";
-import { LandingPage } from "./pages/LandingPage";
-import { BookingPage } from "./pages/BookingPage";
-import { AdminDashboard } from "./pages/AdminDashboard";
-import { AgentDashboard } from "./pages/AgentDashboard";
-import { LoginPage } from "./pages/LoginPage";
+import { PageLoader } from "./components/PageLoader";
+
+// Lazy Load All Pages
+const LandingPage = React.lazy(() => import("./pages/LandingPage").then(m => ({ default: m.LandingPage })));
+const BookingPage = React.lazy(() => import("./pages/BookingPage").then(m => ({ default: m.BookingPage })));
+const AdminDashboard = React.lazy(() => import("./pages/AdminDashboard").then(m => ({ default: m.AdminDashboard })));
+const AgentDashboard = React.lazy(() => import("./pages/AgentDashboard").then(m => ({ default: m.AgentDashboard })));
+const LoginPage = React.lazy(() => import("./pages/LoginPage").then(m => ({ default: m.LoginPage })));
+const ScannerPage = React.lazy(() => import("./pages/ScannerPage").then(m => ({ default: m.ScannerPage })));
 
 export default function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/book" element={<BookingPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/admin" element={<AdminDashboard />} />
-        <Route path="/agent" element={<AgentDashboard />} />
-      </Routes>
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/book" element={<BookingPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/agent" element={<AgentDashboard />} />
+          <Route path="/gate" element={<ScannerPage />} />
+        </Routes>
+      </Suspense>
     </BrowserRouter>
   );
 }

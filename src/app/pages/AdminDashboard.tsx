@@ -4,7 +4,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { motion, AnimatePresence } from "motion/react";
 import {
-    Users, Banknote, Ticket, CalendarClock, TrendingUp, X, Plus, Edit, Trash2, AlertCircle, Home, LogOut, ChevronDown, ChevronUp, Check
+    Users, Banknote, Ticket, CalendarClock, TrendingUp, X, Plus, Edit, Trash2, AlertCircle, Home, LogOut, ChevronDown, ChevronUp, Check, QrCode, MapPin
 } from "lucide-react";
 import {
     PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend
@@ -76,22 +76,30 @@ export function AdminDashboard() {
 
     // Form State (Offline Booking)
     const [newBooking, setNewBooking] = useState({
-        customerName: "", customerAge: "", persons: 1 as number | "", slot: "06:00 AM", phone: "", date: "", package: "premium", paymentMethod: "UPI", passengers: [] as { name: string, age: string }[]
+        customerName: "", customerAge: "", persons: 1 as number | "", slot: "06:00 AM", phone: "", date: "", package: "premium", paymentMethod: "UPI", passengers: [] as { name: string, age: string }[], isVipCheckin: false, isBreakfast: false
     });
     const [offlineBookingSuccess, setOfflineBookingSuccess] = useState<Booking | null>(null);
+
+    const [dashboardLocation, setDashboardLocation] = useState("Goa");
+    const LOCATIONS = ["Goa", "Manali", "Dubai"];
+
+    // Multi-Center: Filter Bookings based on Dashboard Context
+    const activeBookings = useMemo(() => {
+        return bookings.filter(b => (b.location || "Goa") === dashboardLocation);
+    }, [bookings, dashboardLocation]);
 
     // --- COMPUTED DATA ---
     const today = new Date().toISOString().split("T")[0];
 
     const stats = useMemo(() => {
-        const total = bookings.length;
-        const online = bookings.filter(b => b.type === "ONLINE").length;
-        const offline = bookings.filter(b => b.type === "OFFLINE").length;
-        const todayBookings = bookings.filter(b => b.date === today).length;
-        const revenue = bookings.reduce((sum, b) => b.status !== "Cancelled" ? sum + b.price : sum, 0);
+        const total = activeBookings.length;
+        const online = activeBookings.filter(b => b.type === "ONLINE").length;
+        const offline = activeBookings.filter(b => b.type === "OFFLINE").length;
+        const todayBookings = activeBookings.filter(b => b.date === today).length;
+        const revenue = activeBookings.reduce((sum, b) => b.status !== "Cancelled" ? sum + b.price : sum, 0);
 
         return { total, online, offline, todayBookings, revenue };
-    }, [bookings, today]);
+    }, [activeBookings, today]);
 
     const pieData = [
         { name: "Online", value: stats.online },
@@ -99,20 +107,20 @@ export function AdminDashboard() {
     ];
     const barData = PACKAGES.map(pkg => ({
         name: pkg.name,
-        revenue: bookings.filter(b => b.status === "Confirmed" && b.price >= pkg.price).reduce((sum, b) => {
+        revenue: activeBookings.filter(b => b.status === "Confirmed" && b.price >= pkg.price).reduce((sum, b) => {
             return sum + (b.price);
         }, 0)
     }));
 
     const peakHourData = [
-        { name: "06:00 AM", bookings: bookings.filter(b => b.slot === "06:00 AM" && b.status !== "Cancelled").length },
-        { name: "07:30 AM", bookings: bookings.filter(b => b.slot === "07:30 AM" && b.status !== "Cancelled").length },
-        { name: "04:30 PM", bookings: bookings.filter(b => b.slot === "04:30 PM" && b.status !== "Cancelled").length },
-        { name: "05:00 PM", bookings: bookings.filter(b => b.slot === "05:00 PM" && b.status !== "Cancelled").length }
+        { name: "06:00 AM", bookings: activeBookings.filter(b => b.slot === "06:00 AM" && b.status !== "Cancelled").length },
+        { name: "07:30 AM", bookings: activeBookings.filter(b => b.slot === "07:30 AM" && b.status !== "Cancelled").length },
+        { name: "04:30 PM", bookings: activeBookings.filter(b => b.slot === "04:30 PM" && b.status !== "Cancelled").length },
+        { name: "05:00 PM", bookings: activeBookings.filter(b => b.slot === "05:00 PM" && b.status !== "Cancelled").length }
     ];
 
     // Filtered Table Data
-    const filteredBookings = bookings.filter(b => {
+    const filteredBookings = activeBookings.filter(b => {
         if (filterType !== "All" && b.type !== filterType.toUpperCase()) return false;
         if (filterStatus !== "All" && b.status !== filterStatus) return false;
         if (filterDate && b.date !== filterDate) return false;
@@ -136,7 +144,12 @@ export function AdminDashboard() {
         const selectedPkg = PACKAGES.find((p) => p.id === newBooking.package);
         const basicTourAmount = (selectedPkg?.price || 0) * personsCount;
         const totalInsurance = INSURANCE_PRICE * personsCount;
-        const amountBeforeGst = basicTourAmount + totalInsurance;
+
+        const vipAddonPrice = newBooking.isVipCheckin ? 500 * personsCount : 0;
+        const breakfastAddonPrice = newBooking.isBreakfast ? 300 * personsCount : 0;
+        const totalAddons = vipAddonPrice + breakfastAddonPrice;
+
+        const amountBeforeGst = basicTourAmount + totalInsurance + totalAddons;
         const gstAmount = amountBeforeGst * GST_RATE;
         const finalTotalAmount = amountBeforeGst + gstAmount;
 
@@ -168,7 +181,9 @@ export function AdminDashboard() {
             date: newBooking.date,
             status: "Confirmed",
             price: Math.round(finalTotalAmount),
-            paymentMethod: newBooking.paymentMethod
+            paymentMethod: newBooking.paymentMethod,
+            isVipCheckin: newBooking.isVipCheckin,
+            isBreakfast: newBooking.isBreakfast
         };
 
         bookingStore.addBooking(createdBooking);
@@ -265,7 +280,12 @@ export function AdminDashboard() {
 
         const basicTourAmount = selectedPkg.price * b.persons;
         const totalInsurance = INSURANCE_PRICE * b.persons;
-        const amountBeforeGst = basicTourAmount + totalInsurance;
+
+        const vipAddonPrice = b.isVipCheckin ? 500 * b.persons : 0;
+        const breakfastAddonPrice = b.isBreakfast ? 300 * b.persons : 0;
+        const totalAddons = vipAddonPrice + breakfastAddonPrice;
+
+        const amountBeforeGst = basicTourAmount + totalInsurance + totalAddons;
         const gstAmount = amountBeforeGst * GST_RATE;
         const finalTotalAmount = amountBeforeGst + gstAmount;
 
@@ -280,6 +300,24 @@ export function AdminDashboard() {
         doc.text(INSURANCE_PRICE.toString(), 70, y, { align: "right" });
         doc.text(totalInsurance.toString(), 85, y, { align: "right" });
         y += 8;
+
+        if (b.isVipCheckin) {
+            doc.text("VIP Check-in", 15, y);
+            doc.text(b.persons.toString(), 55, y, { align: "right" });
+            doc.text("500", 70, y, { align: "right" });
+            doc.text(vipAddonPrice.toString(), 85, y, { align: "right" });
+            y += 6;
+        }
+
+        if (b.isBreakfast) {
+            doc.text("Breakfast", 15, y);
+            doc.text(b.persons.toString(), 55, y, { align: "right" });
+            doc.text("300", 70, y, { align: "right" });
+            doc.text(breakfastAddonPrice.toString(), 85, y, { align: "right" });
+            y += 6;
+        }
+
+        if (b.isVipCheckin || b.isBreakfast) y += 2;
 
         drawDivider();
 
@@ -333,7 +371,7 @@ export function AdminDashboard() {
     const closeOfflineModal = () => {
         setIsOfflineModalOpen(false);
         setOfflineBookingSuccess(null);
-        setNewBooking({ customerName: "", customerAge: "", persons: 1, slot: "06:00 AM", phone: "", date: "", package: "premium", paymentMethod: "UPI", passengers: [] as { name: string, age: string }[] });
+        setNewBooking({ customerName: "", customerAge: "", persons: 1, slot: "06:00 AM", phone: "", date: "", package: "premium", paymentMethod: "UPI", passengers: [] as { name: string, age: string }[], isVipCheckin: false, isBreakfast: false });
     };
 
     return (
@@ -357,12 +395,37 @@ export function AdminDashboard() {
                     </div>
 
                     <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
-                        <button
-                            onClick={() => setIsOfflineModalOpen(true)}
-                            className="bg-[#D4AF37] hover:bg-[#F7C948] text-black font-bold px-5 py-3 rounded-xl flex items-center justify-center transition shadow-lg shadow-amber-500/10 order-2 sm:order-1"
-                        >
-                            <Plus className="w-5 h-5 mr-2" /> Create Ticket
-                        </button>
+                        <div className="flex gap-2 order-2 sm:order-1">
+                            <button
+                                onClick={() => setIsOfflineModalOpen(true)}
+                                className="bg-[#D4AF37] hover:bg-[#F7C948] text-black font-bold px-4 py-3 rounded-xl flex items-center justify-center transition shadow-lg shadow-amber-500/10"
+                            >
+                                <Plus className="w-5 h-5 mr-1" /> Create Ticket
+                            </button>
+                            <button
+                                onClick={() => navigate("/gate?skipLoader=true")}
+                                className={`font-bold px-4 py-3 rounded-xl flex items-center justify-center transition border ${isLightTheme ? 'bg-white hover:bg-gray-100 text-gray-800 border-gray-200 shadow-sm' : 'bg-white/5 hover:bg-white/10 text-white border-white/10'}`}
+                            >
+                                <QrCode className="w-5 h-5 mr-2 text-blue-500" /> Scanner
+                            </button>
+                            <select
+                                value={dashboardLocation}
+                                onChange={(e) => setDashboardLocation(e.target.value)}
+                                className={`px-4 py-3 rounded-xl border font-bold text-sm focus:outline-none transition-colors appearance-none cursor-pointer flex items-center bg-no-repeat
+                                ${isLightTheme ? 'bg-white border-gray-200 text-gray-800 hover:bg-gray-50' : 'bg-white/5 border-white/10 text-white hover:bg-white/10'}
+                                `}
+                                style={{
+                                    backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='${isLightTheme ? '%234B5563' : '%23D1D5DB'}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
+                                    backgroundPosition: 'right 0.75rem center',
+                                    backgroundSize: '16px',
+                                    paddingRight: '2.5rem'
+                                }}
+                            >
+                                {LOCATIONS.map(loc => (
+                                    <option key={loc} value={loc} className="text-black bg-white">{loc} Center</option>
+                                ))}
+                            </select>
+                        </div>
                         <div className={`flex items-center justify-between sm:justify-start gap-4 ${isLightTheme ? "bg-white border-gray-200" : "bg-[#111827] border-white/10"} p-3 rounded-xl border order-1 sm:order-2`}>
                             <span className="text-sm font-semibold">Online Status</span>
                             <div className="flex items-center gap-2">
@@ -807,6 +870,31 @@ export function AdminDashboard() {
                                                 </div>
                                             </div>
 
+                                            <div className="space-y-2 pt-3 border-t border-gray-200 dark:border-white/10">
+                                                <label className={`text-sm font-bold ${isLightTheme ? "text-gray-800" : "text-white/90"}`}>Optional Add-ons</label>
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                    <label className={`flex items-center justify-between p-2.5 border rounded-xl cursor-pointer transition ${isLightTheme ? "border-gray-200 hover:bg-gray-50" : "border-white/10 hover:bg-white/5"}`}>
+                                                        <div className="flex items-center gap-2">
+                                                            <input type="checkbox" checked={newBooking.isVipCheckin} onChange={(e) => setNewBooking({ ...newBooking, isVipCheckin: e.target.checked })} className="w-4 h-4 accent-[#D4AF37]" />
+                                                            <div>
+                                                                <p className={`font-semibold shrink-0 text-sm ${isLightTheme ? "text-gray-800" : "text-white"}`}>VIP Check-in</p>
+                                                                <p className={`text-[10px] ${isLightTheme ? "text-gray-500" : "text-white/50"}`}>Skip the queue</p>
+                                                            </div>
+                                                        </div>
+                                                        <span className="font-mono font-bold text-[#D4AF37] text-sm">+₹500</span>
+                                                    </label>
+                                                    <label className={`flex items-center justify-between p-2.5 border rounded-xl cursor-pointer transition ${isLightTheme ? "border-gray-200 hover:bg-gray-50" : "border-white/10 hover:bg-white/5"}`}>
+                                                        <div className="flex items-center gap-2">
+                                                            <input type="checkbox" checked={newBooking.isBreakfast} onChange={(e) => setNewBooking({ ...newBooking, isBreakfast: e.target.checked })} className="w-4 h-4 accent-[#D4AF37]" />
+                                                            <div>
+                                                                <p className={`font-semibold shrink-0 text-sm ${isLightTheme ? "text-gray-800" : "text-white"}`}>Breakfast</p>
+                                                                <p className={`text-[10px] ${isLightTheme ? "text-gray-500" : "text-white/50"}`}>Hot beverages</p>
+                                                            </div>
+                                                        </div>
+                                                        <span className="font-mono font-bold text-[#D4AF37] text-sm">+₹300</span>
+                                                    </label>
+                                                </div>
+                                            </div>
 
                                         </div>
 
@@ -815,7 +903,12 @@ export function AdminDashboard() {
                                             const selectedPkg = PACKAGES.find((p) => p.id === newBooking.package);
                                             const basicTourAmount = (selectedPkg?.price || 0) * personsCount;
                                             const totalInsurance = INSURANCE_PRICE * personsCount;
-                                            const amountBeforeGst = basicTourAmount + totalInsurance;
+
+                                            const vipAmount = newBooking.isVipCheckin ? 500 * personsCount : 0;
+                                            const breakfastAmount = newBooking.isBreakfast ? 300 * personsCount : 0;
+                                            const totalAddons = vipAmount + breakfastAmount;
+
+                                            const amountBeforeGst = basicTourAmount + totalInsurance + totalAddons;
                                             const gstAmount = amountBeforeGst * GST_RATE;
                                             const finalTotalAmount = amountBeforeGst + gstAmount;
 
@@ -831,6 +924,18 @@ export function AdminDashboard() {
                                                                 <span>Insurance ({personsCount}x ₹{INSURANCE_PRICE})</span>
                                                                 <span className={isLightTheme ? "text-gray-900" : "text-white"}>₹{totalInsurance}</span>
                                                             </div>
+                                                            {newBooking.isVipCheckin && (
+                                                                <div className="flex justify-between text-[#D4AF37]">
+                                                                    <span>VIP Check-in ({personsCount}x 500)</span>
+                                                                    <span>₹{vipAmount}</span>
+                                                                </div>
+                                                            )}
+                                                            {newBooking.isBreakfast && (
+                                                                <div className="flex justify-between text-[#D4AF37]">
+                                                                    <span>Breakfast ({personsCount}x 300)</span>
+                                                                    <span>₹{breakfastAmount}</span>
+                                                                </div>
+                                                            )}
                                                             <div className={`flex justify-between border-b pb-4 ${isLightTheme ? "border-gray-200" : "border-white/10"}`}>
                                                                 <span>GST (18%)</span>
                                                                 <span className={isLightTheme ? "text-gray-900" : "text-white"}>₹{gstAmount.toFixed(0)}</span>

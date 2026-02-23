@@ -29,7 +29,26 @@ export function BookingModal({ isOpen, onClose, selectedPackageId }: BookingModa
   });
 
   const selectedPkg = packages.find((p) => p.id === selectedPackage);
-  const totalPrice = selectedPkg ? selectedPkg.price * travelers : 0;
+  const basePrice = selectedPkg?.price || 0;
+
+  let weekendSurge = 0;
+  let groupDiscount = 0;
+  let earlyBirdDiscount = 0;
+
+  if (selectedDate) {
+    const dateObj = new Date(selectedDate);
+    const day = dateObj.getDay();
+    if (day === 0 || day === 6) weekendSurge = 500; // Weekend Surge
+
+    const todayObj = new Date(new Date().toISOString().split("T")[0]);
+    const daysDiff = Math.ceil((dateObj.getTime() - todayObj.getTime()) / (1000 * 3600 * 24));
+    if (daysDiff >= 30) earlyBirdDiscount = basePrice * 0.10;
+  }
+
+  if (travelers >= 5) groupDiscount = basePrice * 0.05; // Group Discount
+
+  const dynamicPricePerPerson = basePrice + weekendSurge - earlyBirdDiscount - groupDiscount;
+  const totalPrice = dynamicPricePerPerson * travelers;
   const advancePayment = 500 * travelers;
 
   const handleNext = () => {

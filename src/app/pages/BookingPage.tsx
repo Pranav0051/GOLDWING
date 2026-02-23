@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router";
 import { motion, AnimatePresence } from "motion/react";
-import { Users, CreditCard, Check, Shield, Download, ArrowLeft } from "lucide-react";
+import { Users, CreditCard, Check, Shield, Download, ArrowLeft, MessageCircle, MailCheck } from "lucide-react";
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 
 import jsPDF from "jspdf";
@@ -45,7 +45,7 @@ export function BookingPage() {
     const [paymentMethod, setPaymentMethod] = useState("UPI");
     const [isVipCheckin, setIsVipCheckin] = useState(false);
     const [isBreakfast, setIsBreakfast] = useState(false);
-    // Sync passenger inputs with traveler count
+
     useEffect(() => {
         setPassengers(prev => {
             const newPass = [...prev];
@@ -86,7 +86,34 @@ export function BookingPage() {
 
     // Billing Calculation
     const selectedPkg = PACKAGES.find((p) => p.id === selectedPackage);
-    const basicTourAmount = (selectedPkg?.price || 0) * travelers;
+    const basePrice = selectedPkg?.price || 0;
+
+    let weekendSurge = 0;
+    let groupDiscount = 0;
+    let earlyBirdDiscount = 0;
+
+    if (selectedDate) {
+        const dateObj = new Date(selectedDate);
+        const day = dateObj.getDay();
+        const isWeekend = day === 0 || day === 6; // Sunday or Saturday
+        if (isWeekend) {
+            weekendSurge = 500; // Flat ₹500 extra per person on weekends
+        }
+
+        const todayObj = new Date(today);
+        const daysDifference = Math.ceil((dateObj.getTime() - todayObj.getTime()) / (1000 * 3600 * 24));
+        if (daysDifference >= 30) {
+            earlyBirdDiscount = basePrice * 0.10; // 10% off base price
+        }
+    }
+
+    if (travelers >= 5) {
+        groupDiscount = basePrice * 0.05; // 5% off base price
+    }
+
+    const dynamicPricePerPerson = basePrice + weekendSurge - earlyBirdDiscount - groupDiscount;
+    const basicTourAmount = dynamicPricePerPerson * travelers;
+
     const totalInsurance = INSURANCE_PRICE * travelers;
 
     // Addon calculation
@@ -110,6 +137,10 @@ export function BookingPage() {
     }, [refCode]);
 
     const validateStep3 = () => {
+        if (travelers === 0) {
+            alert("Please select at least one traveler to proceed.");
+            return false;
+        }
         for (let i = 0; i < passengers.length; i++) {
             if (!passengers[i].name.trim() || !passengers[i].age.trim() || parseInt(passengers[i].age) <= 0) {
                 alert(`Please provide a valid name and age for Traveler ${i + 1}.`);
@@ -243,6 +274,24 @@ export function BookingPage() {
         doc.text(totalInsurance.toString(), 85, y, { align: "right" });
         y += 8;
 
+        if (isVipCheckin) {
+            doc.text("VIP Check-in", 15, y);
+            doc.text(travelers.toString(), 55, y, { align: "right" });
+            doc.text("500", 70, y, { align: "right" });
+            doc.text(vipAddonPrice.toString(), 85, y, { align: "right" });
+            y += 6;
+        }
+
+        if (isBreakfast) {
+            doc.text("Breakfast", 15, y);
+            doc.text(travelers.toString(), 55, y, { align: "right" });
+            doc.text("300", 70, y, { align: "right" });
+            doc.text(breakfastAddonPrice.toString(), 85, y, { align: "right" });
+            y += 6;
+        }
+
+        if (isVipCheckin || isBreakfast) y += 2;
+
         drawDivider();
 
         doc.text("Sub Total", 15, y);
@@ -306,6 +355,9 @@ export function BookingPage() {
             body: [
                 [`${selectedPkg?.name} (Basic Tour Amount)`, travelers, `₹${selectedPkg?.price}`, `₹${basicTourAmount}`],
                 [`Mandatory Insurance`, travelers, `₹${INSURANCE_PRICE}`, `₹${totalInsurance}`],
+                ...(weekendSurge > 0 ? [[`Weekend Surge`, travelers, `₹${weekendSurge}`, `₹${weekendSurge * travelers}`]] : []),
+                ...(isVipCheckin ? [[`VIP Fast-Track Check-in`, travelers, `₹500`, `₹${vipAddonPrice}`]] : []),
+                ...(isBreakfast ? [[`Pre-flight Breakfast`, travelers, `₹300`, `₹${breakfastAddonPrice}`]] : []),
                 [`GST (18%)`, 1, `-`, `₹${gstAmount.toFixed(2)}`],
             ],
             foot: [
@@ -454,46 +506,64 @@ export function BookingPage() {
 
                         {step === 3 && (
                             <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
-                                <h3 className="text-2xl font-bold">3. Traveler Details</h3>
+                                <h3 className="text-2xl font-bold">3. Enter Traveler Details</h3>
 
-                                <div className="bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-6 flex flex-col md:flex-row justify-between items-center gap-4">
-                                    <div>
-                                        <h4 className="text-xl font-bold">Number of Travelers</h4>
-                                        <p className="text-gray-600 dark:text-white/60 text-sm">Mandatory insurance per person will be added.</p>
-                                    </div>
-                                    <div className="flex items-center gap-6 bg-white dark:bg-[#111827] px-6 py-2 rounded-full border border-gray-300 dark:border-white/10">
-                                        <button onClick={() => setTravelers(Math.max(1, travelers - 1))} className="text-2xl hover:text-[#D4AF37]">-</button>
-                                        <span className="text-2xl font-bold">{travelers}</span>
-                                        <button onClick={() => setTravelers(Math.min(10, travelers + 1))} className="text-2xl hover:text-[#D4AF37]">+</button>
+                                <div className="bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl p-6">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <div className="text-gray-800 dark:text-white font-semibold">Number of Travelers</div>
+                                            <div className="text-gray-500 dark:text-white/60 text-sm">Age 12+</div>
+                                        </div>
+                                        <div className="flex items-center gap-4">
+                                            <button
+                                                onClick={() => setTravelers(Math.max(1, travelers - 1))}
+                                                className="w-10 h-10 bg-white dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 border border-gray-200 dark:border-white/10 rounded-full text-gray-800 dark:text-white transition-all flex items-center justify-center"
+                                            >
+                                                -
+                                            </button>
+                                            <span className="text-gray-800 dark:text-white font-bold text-xl w-8 text-center">{travelers}</span>
+                                            <button
+                                                onClick={() => setTravelers(Math.min(10, travelers + 1))}
+                                                className="w-10 h-10 bg-white dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 border border-gray-200 dark:border-white/10 rounded-full text-gray-800 dark:text-white transition-all flex items-center justify-center"
+                                            >
+                                                +
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
 
                                 <div className="space-y-4">
+                                    {passengers.length > 0 && <p className="font-bold border-b border-gray-200 dark:border-white/10 pb-2">Passenger Information</p>}
                                     {passengers.map((p, index) => (
-                                        <div key={index} className="flex gap-4">
-                                            <input
-                                                type="text"
-                                                placeholder={`Traveler ${index + 1} Name`}
-                                                value={p.name}
-                                                onChange={(e) => {
-                                                    const newP = [...passengers];
-                                                    newP[index].name = e.target.value;
-                                                    setPassengers(newP);
-                                                    if (index === 0) setFormData({ ...formData, name: e.target.value });
-                                                }}
-                                                className="w-full bg-white dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-[#D4AF37]"
-                                            />
-                                            <input
-                                                type="number"
-                                                placeholder="Age"
-                                                value={p.age}
-                                                onChange={(e) => {
-                                                    const newP = [...passengers];
-                                                    newP[index].age = e.target.value;
-                                                    setPassengers(newP);
-                                                }}
-                                                className="w-24 bg-white dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-[#D4AF37]"
-                                            />
+                                        <div key={index} className="flex flex-col md:flex-row gap-4 items-center bg-gray-50 dark:bg-white/5 p-4 rounded-xl border border-gray-200 dark:border-white/10">
+                                            <div className="bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/30 font-bold w-12 h-12 flex items-center justify-center rounded-lg shrink-0">
+                                                #{index + 1}
+                                            </div>
+                                            <div className="flex flex-1 w-full gap-4">
+                                                <input
+                                                    type="text"
+                                                    placeholder="Passenger Name"
+                                                    value={p.name}
+                                                    onChange={(e) => {
+                                                        const newP = [...passengers];
+                                                        newP[index].name = e.target.value;
+                                                        setPassengers(newP);
+                                                        if (index === 0) setFormData({ ...formData, name: e.target.value });
+                                                    }}
+                                                    className="w-full bg-white dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-[#D4AF37]"
+                                                />
+                                                <input
+                                                    type="number"
+                                                    placeholder="Age"
+                                                    value={p.age}
+                                                    onChange={(e) => {
+                                                        const newP = [...passengers];
+                                                        newP[index].age = e.target.value;
+                                                        setPassengers(newP);
+                                                    }}
+                                                    className="w-24 bg-white dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-[#D4AF37]"
+                                                />
+                                            </div>
                                         </div>
                                     ))}
 
@@ -519,9 +589,30 @@ export function BookingPage() {
 
                                 <div className="bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-6 space-y-4 font-mono text-sm md:text-base">
                                     <div className="flex justify-between text-gray-700 dark:text-white/80 border-b border-gray-200 dark:border-white/10 pb-4">
-                                        <span>Basic Tour Amount ({travelers} x ₹{selectedPkg?.price})</span>
-                                        <span>₹{basicTourAmount.toLocaleString()}</span>
+                                        <span>Base Tour Price ({travelers} x ₹{basePrice})</span>
+                                        <span>₹{(basePrice * travelers).toLocaleString()}</span>
                                     </div>
+
+                                    {weekendSurge > 0 && (
+                                        <div className="flex justify-between text-red-600 dark:text-red-400 border-b border-gray-200 dark:border-white/10 pb-4 pt-4">
+                                            <span className="flex items-center">📈 Weekend Surge ({travelers} x ₹{weekendSurge})</span>
+                                            <span>+ ₹{(weekendSurge * travelers).toLocaleString()}</span>
+                                        </div>
+                                    )}
+
+                                    {earlyBirdDiscount > 0 && (
+                                        <div className="flex justify-between text-green-600 dark:text-green-400 border-b border-gray-200 dark:border-white/10 pb-4 pt-4">
+                                            <span className="flex items-center">⭐ Early Bird Discount (10%)</span>
+                                            <span>- ₹{(earlyBirdDiscount * travelers).toLocaleString()}</span>
+                                        </div>
+                                    )}
+
+                                    {groupDiscount > 0 && (
+                                        <div className="flex justify-between text-green-600 dark:text-green-400 border-b border-gray-200 dark:border-white/10 pb-4 pt-4">
+                                            <span className="flex items-center">🫂 Group Booking Discount (5%)</span>
+                                            <span>- ₹{(groupDiscount * travelers).toLocaleString()}</span>
+                                        </div>
+                                    )}
 
                                     <div className="flex justify-between items-center text-gray-700 dark:text-white/80 border-b border-gray-200 dark:border-white/10 pb-4">
                                         <span className="flex items-center"><Shield className="w-4 h-4 mr-2 text-green-500 dark:text-green-400" /> Mandatory Insurance ({travelers} x ₹{INSURANCE_PRICE})</span>
@@ -576,7 +667,7 @@ export function BookingPage() {
 
                                 <div className="p-4 bg-yellow-50 dark:bg-yellow-500/10 border border-yellow-200 dark:border-yellow-500/30 rounded-xl text-yellow-800 dark:text-yellow-300 text-sm flex">
                                     <Shield className="w-5 h-5 mr-3 flex-shrink-0" />
-                                    <p>Booking logic assigns you a temporary seat lock for 5 minutes. If payment is unsuccessful, the seat returns to the pool automatically.</p>
+                                    <p>Booking logic assigns you a temporary slot reservation for 5 minutes. If payment is unsuccessful, it returns to the pool automatically.</p>
                                 </div>
 
                                 <div className="space-y-4 pt-2">
@@ -640,7 +731,22 @@ export function BookingPage() {
                                     </button>
                                 </div>
 
-                                <p className="text-gray-400 dark:text-white/40 text-sm mt-8">Email confirmation with attachments sent to {formData.email || "your email"}.</p>
+                                <div className="max-w-md mx-auto space-y-3 mt-6">
+                                    <div className="flex items-center gap-3 p-4 bg-green-500/10 border border-green-500/30 rounded-xl text-green-700 dark:text-green-400 text-sm text-left shadow-sm">
+                                        <MessageCircle className="w-6 h-6 shrink-0 text-green-500" />
+                                        <div>
+                                            <p className="font-bold">WhatsApp Ticket Sent!</p>
+                                            <p className="text-xs opacity-80">E-Tickets & live location dispatched to {formData.phone}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-3 p-4 bg-blue-500/10 border border-blue-500/30 rounded-xl text-blue-700 dark:text-blue-400 text-sm text-left shadow-sm">
+                                        <MailCheck className="w-6 h-6 shrink-0 text-blue-500" />
+                                        <div>
+                                            <p className="font-bold">Email Confirmation Dispatched</p>
+                                            <p className="text-xs opacity-80">Receipts and Insurance packet delivered to {formData.email}</p>
+                                        </div>
+                                    </div>
+                                </div>
                             </motion.div>
                         )}
                     </AnimatePresence>

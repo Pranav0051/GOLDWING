@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router";
 import { motion } from "motion/react";
-import { Copy, Users, Target, Trophy, ArrowRight, UserPlus, Link as LinkIcon, BadgePercent, Home, LogOut } from "lucide-react";
+import { Copy, Users, Target, Trophy, ArrowRight, UserPlus, Link as LinkIcon, BadgePercent, Home, LogOut, TrendingUp, BarChart as BarChartIcon } from "lucide-react";
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell } from "recharts";
 import { useMemo } from "react";
 import { bookingStore } from "../utils/bookingStore";
 
@@ -29,6 +30,9 @@ export function AgentDashboard() {
             commissionEarned,
             pendingCommission: totalSeatsSold * 50, // Mock pending
             withdrawableBalance: commissionEarned * 0.6, // Mock balance
+            conversionRate: "12.4%",
+            rank: 3,
+            totalAgents: 45
         };
     }, []);
 
@@ -44,6 +48,15 @@ export function AgentDashboard() {
         // Navigate to booking system pre-filled with agent code
         navigate(`/book?ref=${agentData.id}`);
     };
+
+    const monthlyPerformance = [
+        { month: "Sep", commission: 12000 },
+        { month: "Oct", commission: 15500 },
+        { month: "Nov", commission: 18000 },
+        { month: "Dec", commission: 24000 },
+        { month: "Jan", commission: agentData.commissionEarned > 0 ? (agentData.commissionEarned * 0.4) : 8000 },
+        { month: "Feb", commission: agentData.commissionEarned > 0 ? agentData.commissionEarned : 12500 },
+    ];
 
     return (
         <div className="min-h-screen bg-[#0B0F19] p-4 md:p-8 font-sans text-white">
@@ -82,10 +95,16 @@ export function AgentDashboard() {
                         </div>
                     </div>
 
-                    <div className="mt-4 md:mt-0 flex flex-col items-center p-4 bg-gradient-to-r from-gray-300 to-gray-400 rounded-xl text-black">
-                        <Trophy className="w-8 h-8 mb-1 text-gray-800" />
-                        <span className="font-bold text-sm tracking-widest uppercase">{agentData.level} AGENT</span>
-                        <span className="text-xs text-gray-800 mt-1">{100 - agentData.totalBookings} to Gold</span>
+                    <div className="mt-4 md:mt-0 flex gap-4">
+                        <div className="flex flex-col items-center justify-center p-3 sm:p-4 bg-white/5 border border-white/10 rounded-xl text-white">
+                            <span className="text-xs text-white/60 mb-1 uppercase tracking-wider">Top Agent Rank</span>
+                            <span className="font-bold text-xl flex items-center gap-2"><Trophy className="w-5 h-5 text-[#D4AF37]" /> #{agentData.rank} <span className="text-sm font-normal text-white/50">/ {agentData.totalAgents}</span></span>
+                        </div>
+                        <div className="flex flex-col items-center p-3 sm:p-4 bg-gradient-to-r from-gray-300 to-gray-400 rounded-xl text-black">
+                            <Trophy className="w-6 h-6 sm:w-8 sm:h-8 mb-1 text-gray-800" />
+                            <span className="font-bold text-[10px] sm:text-sm tracking-widest uppercase">{agentData.level} AGENT</span>
+                            <span className="text-[10px] sm:text-xs text-gray-800 mt-1">{100 - agentData.totalBookings} to Gold</span>
+                        </div>
                     </div>
                 </div>
 
@@ -135,9 +154,10 @@ export function AgentDashboard() {
 
                     <motion.div whileHover={{ y: -5 }} className="bg-[#111827] border border-white/10 rounded-2xl p-5 md:p-6 shadow-lg">
                         <h3 className="text-white/60 text-[10px] md:text-sm font-medium mb-1 uppercase tracking-wider">Bookings</h3>
-                        <p className="text-xl md:text-2xl font-bold text-white">{agentData.totalBookings}</p>
-                        <div className="mt-3 w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
-                            <div className="bg-blue-500 h-full" style={{ width: `${(agentData.totalBookings / 100) * 100}%` }}></div>
+                        <p className="text-xl md:text-2xl font-bold text-white mb-2">{agentData.totalBookings}</p>
+                        <div className="flex items-center justify-between text-[10px] md:text-sm">
+                            <span className="text-white/40">Link Clicks: 342</span>
+                            <span className="text-green-400 bg-green-400/10 px-2 py-0.5 rounded flex items-center gap-1"><TrendingUp className="w-3 h-3" /> {agentData.conversionRate}</span>
                         </div>
                     </motion.div>
 
@@ -148,6 +168,28 @@ export function AgentDashboard() {
                         </p>
                         <p className="text-white/40 text-[9px] md:text-[10px] mt-2 flex items-center"><BadgePercent className="w-3 h-3 mr-1" /> ₹200/seat</p>
                     </motion.div>
+                </div>
+
+                {/* Performance Chart */}
+                <div className="bg-[#111827] border border-white/10 rounded-2xl p-6 shadow-lg">
+                    <div className="flex justify-between items-center mb-6">
+                        <h2 className="text-xl font-bold flex items-center gap-2"><BarChartIcon className="w-5 h-5 text-[#D4AF37]" /> Monthly Performance Projection</h2>
+                        <span className="text-white/40 text-sm">₹ Commissions</span>
+                    </div>
+                    <div className="h-[250px] w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={monthlyPerformance}>
+                                <XAxis dataKey="month" stroke="#6b7280" />
+                                <YAxis stroke="#6b7280" />
+                                <Tooltip cursor={{ fill: '#374151', opacity: 0.4 }} contentStyle={{ backgroundColor: '#111827', borderColor: '#374151', color: '#fff' }} />
+                                <Bar dataKey="commission" radius={[4, 4, 0, 0]}>
+                                    {monthlyPerformance.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={index === monthlyPerformance.length - 1 ? "#D4AF37" : "#4f46e5"} />
+                                    ))}
+                                </Bar>
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
                 </div>
 
             </div>

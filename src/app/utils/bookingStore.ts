@@ -7,17 +7,20 @@ export interface Booking {
     category: string;
     type: 'ONLINE' | 'OFFLINE';
     date: string;
-    status: 'Confirmed' | 'Pending' | 'Cancelled';
+    status: 'Confirmed' | 'Pending' | 'Cancelled' | 'Completed';
     price: number;
     paymentMethod?: string;
     agentRef?: string;
+    location?: string;
+    isVipCheckin?: boolean;
+    isBreakfast?: boolean;
 }
 
 const STORAGE_KEY = 'goldwing_bookings';
 
 const MOCK_INITIAL_BOOKINGS: Booking[] = [
-    { id: "GW-102934", customerName: "Rahul Sharma", persons: 1, slot: "06:00 AM", category: "Solo", type: "ONLINE", date: new Date().toISOString().split('T')[0], status: "Confirmed", price: 4365 },
-    { id: "GW-837462", customerName: "Priya Desai", persons: 2, slot: "07:30 AM", category: "Couple", type: "ONLINE", date: new Date().toISOString().split('T')[0], status: "Confirmed", price: 8730 },
+    { id: "GW-102934", customerName: "Rahul Sharma", persons: 1, slot: "06:00 AM", category: "Solo", type: "ONLINE", date: new Date().toISOString().split('T')[0], status: "Confirmed", price: 4365, location: "Goa" },
+    { id: "GW-837462", customerName: "Priya Desai", persons: 2, slot: "07:30 AM", category: "Couple", type: "ONLINE", date: new Date().toISOString().split('T')[0], status: "Confirmed", price: 8730, location: "Goa" },
 ];
 
 export const bookingStore = {
