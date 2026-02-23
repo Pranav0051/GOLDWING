@@ -97,13 +97,19 @@ export function AdminDashboard() {
         { name: "Online", value: stats.online },
         { name: "Offline", value: stats.offline }
     ];
-
     const barData = PACKAGES.map(pkg => ({
         name: pkg.name,
         revenue: bookings.filter(b => b.status === "Confirmed" && b.price >= pkg.price).reduce((sum, b) => {
             return sum + (b.price);
         }, 0)
     }));
+
+    const peakHourData = [
+        { name: "06:00 AM", bookings: bookings.filter(b => b.slot === "06:00 AM" && b.status !== "Cancelled").length },
+        { name: "07:30 AM", bookings: bookings.filter(b => b.slot === "07:30 AM" && b.status !== "Cancelled").length },
+        { name: "04:30 PM", bookings: bookings.filter(b => b.slot === "04:30 PM" && b.status !== "Cancelled").length },
+        { name: "05:00 PM", bookings: bookings.filter(b => b.slot === "05:00 PM" && b.status !== "Cancelled").length }
+    ];
 
     // Filtered Table Data
     const filteredBookings = bookings.filter(b => {
@@ -434,9 +440,9 @@ export function AdminDashboard() {
                 </div>
 
                 {/* Charts Section */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className={`${isLightTheme ? "bg-white border-gray-200" : "bg-[#111827] border-white/10"} p-6 rounded-2xl shadow-sm border`}>
-                        <h3 className="text-lg font-bold mb-4">Online vs Offline Bookings</h3>
+                        <h3 className="text-lg font-bold mb-4 flex items-center gap-2"><TrendingUp className="w-5 h-5 text-blue-500" /> Online vs Offline</h3>
                         <div className="h-[250px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
                                 <PieChart>
@@ -451,8 +457,9 @@ export function AdminDashboard() {
                             </ResponsiveContainer>
                         </div>
                     </div>
+
                     <div className={`${isLightTheme ? "bg-white border-gray-200" : "bg-[#111827] border-white/10"} p-6 rounded-2xl shadow-sm border`}>
-                        <h3 className="text-lg font-bold mb-4">Revenue by Package</h3>
+                        <h3 className="text-lg font-bold mb-4 flex items-center gap-2"><Banknote className="w-5 h-5 text-green-500" /> Revenue by Package</h3>
                         <div className="h-[250px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={barData}>
@@ -464,6 +471,20 @@ export function AdminDashboard() {
                                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                         ))}
                                     </Bar>
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
+
+                    <div className={`${isLightTheme ? "bg-white border-gray-200" : "bg-[#111827] border-white/10"} p-6 rounded-2xl shadow-sm border`}>
+                        <h3 className="text-lg font-bold mb-4 flex items-center gap-2"><CalendarClock className="w-5 h-5 text-purple-500" /> Peak Hour Analysis</h3>
+                        <div className="h-[250px] w-full">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={peakHourData}>
+                                    <XAxis dataKey="name" stroke={isLightTheme ? "#9ca3af" : "#6b7280"} tick={{ fontSize: 12 }} />
+                                    <YAxis stroke={isLightTheme ? "#9ca3af" : "#6b7280"} />
+                                    <Tooltip contentStyle={{ backgroundColor: isLightTheme ? '#fff' : '#111827', borderColor: isLightTheme ? '#e5e7eb' : '#374151', color: isLightTheme ? '#111' : '#fff' }} cursor={{ fill: isLightTheme ? '#f3f4f6' : '#374151', opacity: 0.4 }} />
+                                    <Bar dataKey="bookings" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
                                 </BarChart>
                             </ResponsiveContainer>
                         </div>

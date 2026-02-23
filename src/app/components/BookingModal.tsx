@@ -134,16 +134,35 @@ export function BookingModal({ isOpen, onClose, selectedPackageId }: BookingModa
                   />
                 </div>
                 <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
-                  <div className="text-white/70 text-sm">Available Time Slots</div>
-                  <div className="grid grid-cols-2 gap-2 mt-3">
-                    {["6:00 AM", "7:00 AM", "4:00 PM", "5:00 PM"].map((time) => (
-                      <button
-                        key={time}
-                        className="bg-white/5 hover:bg-[#D4AF37]/10 border border-white/10 hover:border-[#D4AF37]/50 rounded-lg px-4 py-2 text-white text-sm transition-all"
-                      >
-                        {time}
-                      </button>
-                    ))}
+                  <div className="text-white/70 text-sm mb-3">Available Time Slots</div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {[
+                      { time: "6:00 AM", total: 20, booked: 18 },
+                      { time: "7:00 AM", total: 20, booked: 5 },
+                      { time: "4:00 PM", total: 20, booked: 20 },
+                      { time: "5:00 PM", total: 20, booked: 2 },
+                    ].map((slot) => {
+                      const remaining = slot.total - slot.booked;
+                      const isFull = remaining === 0;
+
+                      return (
+                        <button
+                          key={slot.time}
+                          disabled={isFull}
+                          className={`flex flex-col text-left border rounded-lg p-3 transition-all ${isFull ? 'border-red-500/30 bg-red-500/10 opacity-50 cursor-not-allowed' : 'bg-white/5 hover:bg-[#D4AF37]/10 border-white/10 hover:border-[#D4AF37]/50'} `}
+                        >
+                          <div className="flex justify-between w-full items-center mb-1">
+                            <span className="text-white font-bold">{slot.time}</span>
+                            <span className={isFull ? "text-red-400 text-xs" : "text-[#D4AF37] text-xs font-bold"}>
+                              {isFull ? "FULL" : `🔥 ${remaining} Left`}
+                            </span>
+                          </div>
+                          <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden mt-1">
+                            <div className={`h-full ${isFull ? 'bg-red-500' : 'bg-[#16A34A]'}`} style={{ width: `${(slot.booked / slot.total) * 100}%` }}></div>
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               </div>

@@ -43,7 +43,8 @@ export function BookingPage() {
     const [agentCode, setAgentCode] = useState(refCode || "");
     const [formData, setFormData] = useState({ name: "", email: "", phone: "" });
     const [paymentMethod, setPaymentMethod] = useState("UPI");
-
+    const [isVipCheckin, setIsVipCheckin] = useState(false);
+    const [isBreakfast, setIsBreakfast] = useState(false);
     // Sync passenger inputs with traveler count
     useEffect(() => {
         setPassengers(prev => {
@@ -87,7 +88,13 @@ export function BookingPage() {
     const selectedPkg = PACKAGES.find((p) => p.id === selectedPackage);
     const basicTourAmount = (selectedPkg?.price || 0) * travelers;
     const totalInsurance = INSURANCE_PRICE * travelers;
-    const amountBeforeGst = basicTourAmount + totalInsurance;
+
+    // Addon calculation
+    const vipAddonPrice = isVipCheckin ? 500 * travelers : 0;
+    const breakfastAddonPrice = isBreakfast ? 300 * travelers : 0;
+    const totalAddons = vipAddonPrice + breakfastAddonPrice;
+
+    const amountBeforeGst = basicTourAmount + totalInsurance + totalAddons;
     const gstAmount = amountBeforeGst * GST_RATE;
     const finalTotalAmount = amountBeforeGst + gstAmount;
 
@@ -419,10 +426,14 @@ export function BookingPage() {
                                                         selectedSlot === slot.id ? "border-[#D4AF37] bg-[#D4AF37]/10" : "border-gray-200 bg-gray-50 hover:border-gray-300 dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20"
                                                         }`}
                                                 >
-                                                    <div>
+                                                    <div className="w-full">
                                                         <div className="text-lg font-bold">{slot.time}</div>
                                                         <div className={isFull ? "text-red-500 dark:text-red-400" : "text-[#D4AF37]"}>
-                                                            {isFull ? "Slot Full" : `${remaining} Seats Remaining`}
+                                                            {isFull ? "Slot Full" : `🔥 ${remaining} Seats Remaining`}
+                                                        </div>
+                                                        {/* Live Occupancy Bar */}
+                                                        <div className="w-full bg-gray-200 dark:bg-white/10 h-1.5 rounded-full mt-2 overflow-hidden">
+                                                            <div className={`h-full ${isFull ? 'bg-red-500' : 'bg-[#16A34A]'} transition-all`} style={{ width: `${(slot.bookedSeats / slot.totalSeats) * 100}%` }}></div>
                                                         </div>
                                                     </div>
                                                 </button>
@@ -517,7 +528,42 @@ export function BookingPage() {
                                         <span>₹{totalInsurance.toLocaleString()}</span>
                                     </div>
 
-                                    <div className="flex justify-between text-gray-700 dark:text-white/80 border-b border-gray-200 dark:border-white/10 pb-4">
+                                    {/* Insurance Transparency Panel */}
+                                    <div className="mt-2 mb-4 bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/30 rounded-lg p-3 text-sm text-green-800 dark:text-green-300">
+                                        <p className="font-semibold mb-1">✓ What's covered by Insurance:</p>
+                                        <ul className="list-disc list-inside opacity-90 text-xs space-y-1">
+                                            <li>Medical emergency (Up to ₹2 Lakhs)</li>
+                                            <li>Flight cancellation protection</li>
+                                            <li>Third-party liability & On-ground coverage</li>
+                                        </ul>
+                                    </div>
+
+                                    {/* Add-on Upgrades */}
+                                    <div className="pt-2 space-y-3 border-b border-gray-200 dark:border-white/10 pb-4">
+                                        <p className="font-bold text-gray-700 dark:text-white/80">Enhance Your Experience (Optional)</p>
+                                        <label className="flex items-center justify-between p-3 border border-gray-200 dark:border-white/10 rounded-xl cursor-pointer hover:bg-gray-50 dark:hover:bg-white/5 transition">
+                                            <div className="flex items-center gap-3">
+                                                <input type="checkbox" checked={isVipCheckin} onChange={(e) => setIsVipCheckin(e.target.checked)} className="w-5 h-5 accent-[#D4AF37]" />
+                                                <div>
+                                                    <p className="font-semibold text-gray-800 dark:text-white shrink-0">VIP Fast-Track Check-in</p>
+                                                    <p className="text-xs text-gray-500 dark:text-white/50">Skip the queue & dedicated briefing</p>
+                                                </div>
+                                            </div>
+                                            <span className="font-mono font-bold">₹{500 * travelers}</span>
+                                        </label>
+                                        <label className="flex items-center justify-between p-3 border border-gray-200 dark:border-white/10 rounded-xl cursor-pointer hover:bg-gray-50 dark:hover:bg-white/5 transition">
+                                            <div className="flex items-center gap-3">
+                                                <input type="checkbox" checked={isBreakfast} onChange={(e) => setIsBreakfast(e.target.checked)} className="w-5 h-5 accent-[#D4AF37]" />
+                                                <div>
+                                                    <p className="font-semibold text-gray-800 dark:text-white shrink-0">Pre-flight Breakfast</p>
+                                                    <p className="text-xs text-gray-500 dark:text-white/50">Premium snacks & hot beverages</p>
+                                                </div>
+                                            </div>
+                                            <span className="font-mono font-bold">₹{300 * travelers}</span>
+                                        </label>
+                                    </div>
+
+                                    <div className="flex justify-between text-gray-700 dark:text-white/80 border-b border-gray-200 dark:border-white/10 pb-4 pt-4">
                                         <span>GST (18%)</span>
                                         <span>₹{gstAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
                                     </div>
