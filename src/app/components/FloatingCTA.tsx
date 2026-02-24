@@ -29,6 +29,7 @@ export function FloatingCTA({ onBookClick }: { onBookClick: () => void }) {
         whileTap={{ scale: 0.9 }}
         className={`fixed right-6 z-40 w-16 h-16 bg-[#25D366] hover:bg-[#25D366]/90 rounded-full flex items-center justify-center shadow-[0_4_15px_rgba(37,211,102,0.4)] transition-all duration-300 ${isVisible ? 'bottom-24 opacity-100 translate-y-0' : 'bottom-6 opacity-0 translate-y-10 pointer-events-none'}`}
       >
+        {/* @ts-ignore */}
         <lord-icon
           src="https://cdn.lordicon.com/qtenrimd.json"
           trigger="hover"

@@ -3,8 +3,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router";
 import { motion } from "motion/react";
-import { Copy, Users, Target, Trophy, ArrowRight, UserPlus, Link as LinkIcon, BadgePercent, Home, LogOut, TrendingUp, BarChart as BarChartIcon } from "lucide-react";
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell } from "recharts";
+import { Copy, Users, Target, Trophy, ArrowRight, UserPlus, Link as LinkIcon, BadgePercent, Home, LogOut, TrendingUp } from "lucide-react";
 import { useMemo } from "react";
 import { bookingStore } from "../utils/bookingStore";
 
@@ -48,15 +47,6 @@ export function AgentDashboard() {
         // Navigate to booking system pre-filled with agent code
         navigate(`/book?ref=${agentData.id}`);
     };
-
-    const monthlyPerformance = [
-        { month: "Sep", commission: 12000 },
-        { month: "Oct", commission: 15500 },
-        { month: "Nov", commission: 18000 },
-        { month: "Dec", commission: 24000 },
-        { month: "Jan", commission: agentData.commissionEarned > 0 ? (agentData.commissionEarned * 0.4) : 8000 },
-        { month: "Feb", commission: agentData.commissionEarned > 0 ? agentData.commissionEarned : 12500 },
-    ];
 
     return (
         <div className="min-h-screen bg-[#0B0F19] p-4 md:p-8 font-sans text-white">
@@ -169,29 +159,6 @@ export function AgentDashboard() {
                         <p className="text-white/40 text-[9px] md:text-[10px] mt-2 flex items-center"><BadgePercent className="w-3 h-3 mr-1" /> ₹200/seat</p>
                     </motion.div>
                 </div>
-
-                {/* Performance Chart */}
-                <div className="bg-[#111827] border border-white/10 rounded-2xl p-6 shadow-lg">
-                    <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-xl font-bold flex items-center gap-2"><BarChartIcon className="w-5 h-5 text-[#D4AF37]" /> Monthly Performance Projection</h2>
-                        <span className="text-white/40 text-sm">₹ Commissions</span>
-                    </div>
-                    <div className="h-[250px] w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={monthlyPerformance}>
-                                <XAxis dataKey="month" stroke="#6b7280" />
-                                <YAxis stroke="#6b7280" />
-                                <Tooltip cursor={{ fill: '#374151', opacity: 0.4 }} contentStyle={{ backgroundColor: '#111827', borderColor: '#374151', color: '#fff' }} />
-                                <Bar dataKey="commission" radius={[4, 4, 0, 0]}>
-                                    {monthlyPerformance.map((_, index) => (
-                                        <Cell key={`cell-${index}`} fill={index === monthlyPerformance.length - 1 ? "#D4AF37" : "#4f46e5"} />
-                                    ))}
-                                </Bar>
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </div>
-                </div>
-
             </div>
         </div>
     );
