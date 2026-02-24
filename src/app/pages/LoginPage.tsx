@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
-import { EyeOff, Eye, ArrowRight } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
+import { EyeOff, Eye, ArrowRight, AlertCircle, X } from "lucide-react";
 
 export function LoginPage() {
     const navigate = useNavigate();
@@ -10,6 +11,12 @@ export function LoginPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
+
+    const [errorMsg, setErrorMsg] = useState("");
+    const showError = (msg: string) => {
+        setErrorMsg(msg);
+        setTimeout(() => setErrorMsg(""), 4000);
+    };
 
     // Persist login state
     useState(() => {
@@ -23,7 +30,7 @@ export function LoginPage() {
         e.preventDefault();
 
         if (!email.trim() || !password.trim()) {
-            alert("Please enter both email and password.");
+            showError("Please enter both email and password.");
             return;
         }
 
@@ -34,7 +41,7 @@ export function LoginPage() {
                 localStorage.setItem("isAdminLoggedIn", "true");
                 navigate("/admin");
             } else {
-                alert("Incorrect password for Admin access.");
+                showError("Incorrect password for Admin access.");
             }
         } else {
             navigate("/agent");
@@ -43,6 +50,24 @@ export function LoginPage() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-[#9Bc2d3] to-[#e4a8c9] flex items-center justify-center p-4 lg:p-12 font-sans relative">
+            {/* Error Toast */}
+            <AnimatePresence>
+                {errorMsg && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -20, x: "-50%" }}
+                        animate={{ opacity: 1, y: 0, x: "-50%" }}
+                        exit={{ opacity: 0, y: -20, x: "-50%" }}
+                        className="fixed top-8 left-1/2 z-[100] flex items-center gap-3 bg-red-600 text-white px-6 py-4 rounded-2xl shadow-2xl font-semibold max-w-sm w-[90%]"
+                    >
+                        <AlertCircle className="w-6 h-6 shrink-0" />
+                        <span className="flex-1 text-sm">{errorMsg}</span>
+                        <button onClick={() => setErrorMsg("")} className="shrink-0 p-1 hover:bg-white/20 rounded-full transition">
+                            <X className="w-5 h-5" />
+                        </button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             <Link to="/?skipLoader=true" className="absolute top-6 left-6 inline-flex items-center text-white/90 font-bold hover:text-white transition drop-shadow-md">
                 ← Back to Home
             </Link>

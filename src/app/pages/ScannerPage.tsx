@@ -2,14 +2,20 @@
 
 import { useState } from "react";
 import { Link } from "react-router";
-import { motion } from "motion/react";
-import { QrCode, ShieldCheck, XCircle, Search, ArrowLeft, Ticket } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
+import { QrCode, ShieldCheck, XCircle, Search, ArrowLeft, Ticket, CheckCircle, X } from "lucide-react";
 import { bookingStore } from "../utils/bookingStore";
 
 export function ScannerPage() {
     const [scanData, setScanData] = useState("");
     const [result, setResult] = useState<any>(null);
     const [error, setError] = useState("");
+
+    const [successMsg, setSuccessMsg] = useState("");
+    const showSuccess = (msg: string) => {
+        setSuccessMsg(msg);
+        setTimeout(() => setSuccessMsg(""), 4000);
+    };
 
     const handleSimulateScan = (e: React.FormEvent) => {
         e.preventDefault();
@@ -33,12 +39,29 @@ export function ScannerPage() {
         if (result && result.status !== "Cancelled") {
             bookingStore.updateStatus(result.id, "Completed");
             setResult({ ...result, status: "Completed" });
-            alert(`✅ ${result.customerName} marked as ATTENDED!`);
+            showSuccess(`✅ ${result.customerName} marked as ATTENDED!`);
         }
     };
 
     return (
         <div className="min-h-screen bg-[#0B0F19] text-white p-4 font-sans flex flex-col items-center">
+            {/* Success Toast */}
+            <AnimatePresence>
+                {successMsg && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -20, x: "-50%" }}
+                        animate={{ opacity: 1, y: 0, x: "-50%" }}
+                        exit={{ opacity: 0, y: -20, x: "-50%" }}
+                        className="fixed top-8 left-1/2 z-[100] flex items-center gap-3 bg-green-600 text-white px-6 py-4 rounded-2xl shadow-2xl font-semibold max-w-sm w-[90%]"
+                    >
+                        <CheckCircle className="w-6 h-6 shrink-0" />
+                        <span className="flex-1 text-sm">{successMsg}</span>
+                        <button onClick={() => setSuccessMsg("")} className="shrink-0 p-1 hover:bg-white/20 rounded-full transition">
+                            <X className="w-5 h-5" />
+                        </button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             <div className="w-full max-w-lg mb-8 mt-4 flex justify-between items-center">
                 <Link to="/admin?skipLoader=true" className="flex items-center text-white/60 hover:text-white transition group">

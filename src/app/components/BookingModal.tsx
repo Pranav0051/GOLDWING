@@ -160,28 +160,30 @@ export function BookingModal({ isOpen, onClose, selectedPackageId }: BookingModa
                       { time: "7:00 AM", total: 20, booked: 5 },
                       { time: "4:00 PM", total: 20, booked: 20 },
                       { time: "5:00 PM", total: 20, booked: 2 },
-                    ].map((slot) => {
-                      const remaining = slot.total - slot.booked;
-                      const isFull = remaining === 0;
+                    ]
+                      .filter(slot => selectedPackage === "sunrise" ? !slot.time.includes("PM") : true)
+                      .map((slot) => {
+                        const remaining = slot.total - slot.booked;
+                        const isFull = remaining === 0;
 
-                      return (
-                        <button
-                          key={slot.time}
-                          disabled={isFull}
-                          className={`flex flex-col text-left border rounded-lg p-3 transition-all ${isFull ? 'border-red-500/30 bg-red-500/10 opacity-50 cursor-not-allowed' : 'bg-white/5 hover:bg-[#D4AF37]/10 border-white/10 hover:border-[#D4AF37]/50'} `}
-                        >
-                          <div className="flex justify-between w-full items-center mb-1">
-                            <span className="text-white font-bold">{slot.time}</span>
-                            <span className={isFull ? "text-red-400 text-xs" : "text-[#D4AF37] text-xs font-bold"}>
-                              {isFull ? "FULL" : `🔥 ${remaining} Left`}
-                            </span>
-                          </div>
-                          <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden mt-1">
-                            <div className={`h-full ${isFull ? 'bg-red-500' : 'bg-[#16A34A]'}`} style={{ width: `${(slot.booked / slot.total) * 100}%` }}></div>
-                          </div>
-                        </button>
-                      );
-                    })}
+                        return (
+                          <button
+                            key={slot.time}
+                            disabled={isFull}
+                            className={`flex flex-col text-left border rounded-lg p-3 transition-all ${isFull ? 'border-red-500/30 bg-red-500/10 opacity-50 cursor-not-allowed' : 'bg-white/5 hover:bg-[#D4AF37]/10 border-white/10 hover:border-[#D4AF37]/50'} `}
+                          >
+                            <div className="flex justify-between w-full items-center mb-1">
+                              <span className="text-white font-bold">{slot.time}</span>
+                              <span className={isFull ? "text-red-400 text-xs" : "text-[#D4AF37] text-xs font-bold"}>
+                                {isFull ? "FULL" : `🔥 ${remaining} Left`}
+                              </span>
+                            </div>
+                            <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden mt-1">
+                              <div className={`h-full ${isFull ? 'bg-red-500' : 'bg-[#16A34A]'}`} style={{ width: `${(slot.booked / slot.total) * 100}%` }}></div>
+                            </div>
+                          </button>
+                        );
+                      })}
                   </div>
                 </div>
               </div>
@@ -309,14 +311,12 @@ export function BookingModal({ isOpen, onClose, selectedPackageId }: BookingModa
           {/* Footer */}
           {step < 5 && (
             <div className="sticky bottom-0 bg-[#111827] border-t border-white/10 p-6 flex gap-3">
-              {step > 1 && (
-                <button
-                  onClick={handleBack}
-                  className="flex-1 bg-white/5 hover:bg-white/10 border border-white/10 text-white py-3 rounded-full font-semibold transition-all"
-                >
-                  Back
-                </button>
-              )}
+              <button
+                onClick={step > 1 ? handleBack : onClose}
+                className="flex-1 bg-white/5 hover:bg-white/10 border border-white/10 text-white py-3 rounded-full font-semibold transition-all"
+              >
+                Back
+              </button>
               <button
                 onClick={step === 4 ? handleSubmit : handleNext}
                 className="flex-1 bg-gradient-to-r from-[#D4AF37] to-[#F7C948] hover:shadow-[0_0_30px_rgba(212,175,55,0.5)] text-[#0B0F19] py-3 rounded-full font-semibold transition-all"

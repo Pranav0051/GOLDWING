@@ -3,11 +3,10 @@
 import { useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router";
 import { motion, AnimatePresence } from "motion/react";
-import { Users, CreditCard, Check, Shield, Download, ArrowLeft, MessageCircle, MailCheck } from "lucide-react";
+import { Users, CreditCard, Check, Shield, Download, ArrowLeft, MailCheck, AlertCircle, X } from "lucide-react";
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 
 import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import QRCode from "qrcode";
 import { bookingStore, Booking } from "../utils/bookingStore";
 
@@ -46,6 +45,13 @@ export function BookingPage() {
     const [isVipCheckin, setIsVipCheckin] = useState(false);
     const [isBreakfast, setIsBreakfast] = useState(false);
 
+    const [errorMsg, setErrorMsg] = useState("");
+
+    const showError = (msg: string) => {
+        setErrorMsg(msg);
+        setTimeout(() => setErrorMsg(""), 4000);
+    };
+
     useEffect(() => {
         setPassengers(prev => {
             const newPass = [...prev];
@@ -81,7 +87,7 @@ export function BookingPage() {
     // Filtering Logic base on requirement: Shows only PRESENT and FUTURE dates, hides past dates.
     const today = new Date().toISOString().split("T")[0];
     const availableSlots = MOCK_SLOTS.filter(
-        (slot) => slot.date === selectedDate && slot.date >= today
+        (slot) => slot.date === selectedDate && slot.date >= today && (selectedPackage === "sunrise" ? !slot.time.includes("PM") : true)
     );
 
     // Billing Calculation
@@ -138,21 +144,21 @@ export function BookingPage() {
 
     const validateStep3 = () => {
         if (travelers === 0) {
-            alert("Please select at least one traveler to proceed.");
+            showError("Please select at least one traveler to proceed.");
             return false;
         }
         for (let i = 0; i < passengers.length; i++) {
             if (!passengers[i].name.trim() || !passengers[i].age.trim() || parseInt(passengers[i].age) <= 0) {
-                alert(`Please provide a valid name and age for Traveler ${i + 1}.`);
+                showError(`Please provide a valid name and age for Traveler ${i + 1}.`);
                 return false;
             }
         }
         if (!formData.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-            alert("Please provide a valid email address.");
+            showError("Please provide a valid email address.");
             return false;
         }
         if (!formData.phone.trim() || formData.phone.length < 10) {
-            alert("Please provide a valid 10-digit mobile number.");
+            showError("Please provide a valid 10-digit mobile number.");
             return false;
         }
         return true;
@@ -339,43 +345,130 @@ export function BookingPage() {
     };
 
     const handleDownloadInvoice = () => {
-        const doc = new jsPDF();
-        doc.setFontSize(20);
-        doc.text("INVOICE", 105, 20, { align: "center" });
+        const docHeight = 250;
+        const doc = new jsPDF({ format: [100, docHeight], unit: "mm" });
+        doc.setFillColor(255, 255, 255);
+        doc.rect(0, 0, 100, docHeight, "F");
 
-        doc.setFontSize(12);
-        doc.text(`Invoice No: INV-${Math.floor(Math.random() * 90000 + 10000)}`, 14, 40);
-        doc.text(`Date: ${new Date().toLocaleDateString()}`, 14, 47);
-        doc.text(`Customer Name: ${formData.name || "N/A"}`, 14, 54);
-        doc.text(`Booking ID: ${bookingId}`, 14, 61);
+        doc.setTextColor(0, 0, 0);
 
-        autoTable(doc, {
-            startY: 75,
-            head: [["Description", "Qty", "Rate", "Amount"]],
-            body: [
-                [`${selectedPkg?.name} (Basic Tour Amount)`, travelers, `₹${selectedPkg?.price}`, `₹${basicTourAmount}`],
-                [`Mandatory Insurance`, travelers, `₹${INSURANCE_PRICE}`, `₹${totalInsurance}`],
-                ...(weekendSurge > 0 ? [[`Weekend Surge`, travelers, `₹${weekendSurge}`, `₹${weekendSurge * travelers}`]] : []),
-                ...(isVipCheckin ? [[`VIP Fast-Track Check-in`, travelers, `₹500`, `₹${vipAddonPrice}`]] : []),
-                ...(isBreakfast ? [[`Pre-flight Breakfast`, travelers, `₹300`, `₹${breakfastAddonPrice}`]] : []),
-                [`GST (18%)`, 1, `-`, `₹${gstAmount.toFixed(2)}`],
-            ],
-            foot: [
-                ["", "", "Grand Total", `₹${finalTotalAmount.toFixed(2)}`]
-            ],
-            theme: "striped",
-            headStyles: { fillColor: [212, 175, 55] },
-            footStyles: { fillColor: [11, 15, 25], textColor: [255, 255, 255] }
-        });
+        let y = 15;
+        const centerX = 50;
+
+        const setCenteredText = (text: string, fontStyle: "normal" | "bold" = "normal", size: number = 10, yOffset: number = 5) => {
+            doc.setFont("times", fontStyle);
+            doc.setFontSize(size);
+            doc.text(text, centerX, y, { align: "center" });
+            y += yOffset;
+        };
+
+        const drawDivider = () => {
+            y += 4;
+            doc.setLineDashPattern([1.5, 1.5], 0);
+            doc.line(15, y - 4, 85, y - 4);
+            doc.setLineDashPattern([], 0);
+            y += 6;
+        };
+
+        setCenteredText("GOLDWING ADVENTURE TOURS", "bold", 10, 6);
+        setCenteredText("INVOICE", "bold", 12, 6);
+
+        drawDivider();
+
+        doc.setFont("times", "normal");
+        doc.setFontSize(10);
+        doc.text(`Invoice No: INV-${Math.floor(Math.random() * 90000 + 10000)}`, 15, y); y += 6;
+        doc.text(`Date: ${new Date().toLocaleDateString()}`, 15, y); y += 6;
+        doc.text(`Customer: ${formData.name || "N/A"}`, 15, y); y += 6;
+        doc.text(`Booking ID: ${bookingId}`, 15, y); y += 6;
+
+        drawDivider();
+
+        doc.setFont("times", "bold");
+        doc.text("ITEM", 15, y);
+        doc.text("QTY", 55, y, { align: "right" });
+        doc.text("RATE", 70, y, { align: "right" });
+        doc.text("AMT", 85, y, { align: "right" });
+        y += 8;
+
+        drawDivider();
+
+        doc.setFont("times", "normal");
+        doc.setFontSize(9);
+        const addRow = (desc: string, qty: string, rate: string, amt: string) => {
+            if (desc.length > 20) {
+                doc.text(desc.substring(0, 20), 15, y); y += 4;
+                doc.text(desc.substring(20), 15, y);
+            } else {
+                doc.text(desc, 15, y);
+            }
+            doc.text(qty, 55, y, { align: "right" });
+            doc.text(rate, 70, y, { align: "right" });
+            doc.text(amt, 85, y, { align: "right" });
+            y += 6;
+        };
+
+        addRow(`${selectedPkg?.name}`, travelers.toString(), `Rs. ${selectedPkg?.price}`, `Rs. ${basicTourAmount}`);
+        addRow(`Insurance`, travelers.toString(), `Rs. ${INSURANCE_PRICE}`, `Rs. ${totalInsurance}`);
+
+        if (weekendSurge > 0) {
+            addRow(`Weekend Surge`, travelers.toString(), `Rs. ${weekendSurge}`, `Rs. ${weekendSurge * travelers}`);
+        }
+        if (isVipCheckin) {
+            addRow(`VIP Check-in`, travelers.toString(), `Rs. 500`, `Rs. ${vipAddonPrice}`);
+        }
+        if (isBreakfast) {
+            addRow(`Breakfast`, travelers.toString(), `Rs. 300`, `Rs. ${breakfastAddonPrice}`);
+        }
+
+        y += 2;
+        drawDivider();
 
         doc.setFontSize(10);
-        doc.text("Thank you for choosing Goldwing Adventure Tours.", 14, (doc as any).lastAutoTable.finalY + 20);
+        doc.text("Sub Total", 15, y);
+        doc.text(`Rs. ${(finalTotalAmount - gstAmount).toFixed(2)}`, 85, y, { align: "right" });
+        y += 6;
+
+        doc.text("GST (18%)", 15, y);
+        doc.text(`Rs. ${gstAmount.toFixed(2)}`, 85, y, { align: "right" });
+        y += 8;
+
+        drawDivider();
+
+        doc.setFont("times", "bold");
+        doc.text("GRAND TOTAL", 15, y);
+        doc.text(`Rs. ${finalTotalAmount.toFixed(2)}`, 85, y, { align: "right" });
+        y += 8;
+
+        drawDivider();
+
+        setCenteredText("Thank you for choosing", "normal", 10, 5);
+        setCenteredText("Goldwing Adventure Tours.", "normal", 10, 8);
+        setCenteredText("This is a computer-generated invoice.", "normal", 9, 6);
 
         doc.save(`Goldwing_Invoice_${bookingId}.pdf`);
     };
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-[#0B0F19] p-4 md:p-8 font-sans text-gray-900 dark:text-white transition-colors duration-300">
+            {/* Error Toast */}
+            <AnimatePresence>
+                {errorMsg && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -20, x: "-50%" }}
+                        animate={{ opacity: 1, y: 0, x: "-50%" }}
+                        exit={{ opacity: 0, y: -20, x: "-50%" }}
+                        className="fixed top-8 left-1/2 z-[100] flex items-center gap-3 bg-red-600 text-white px-6 py-4 rounded-2xl shadow-2xl font-semibold max-w-sm w-[90%]"
+                    >
+                        <AlertCircle className="w-6 h-6 shrink-0" />
+                        <span className="flex-1 text-sm">{errorMsg}</span>
+                        <button onClick={() => setErrorMsg("")} className="shrink-0 p-1 hover:bg-white/20 rounded-full transition">
+                            <X className="w-5 h-5" />
+                        </button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             <Link to="/?skipLoader=true" className="inline-flex items-center text-gray-600 dark:text-white/70 hover:text-gray-900 dark:hover:text-white mb-6 transition">
                 <ArrowLeft className="w-5 h-5 mr-2" /> Back to Home
             </Link>
@@ -443,7 +536,10 @@ export function BookingPage() {
                                         Online booking is currently closed. Please contact admin.
                                     </div>
                                 ) : (
-                                    <button onClick={() => setStep(2)} className="w-full bg-[#D4AF37] text-black font-bold text-lg py-4 rounded-xl mt-6 hover:bg-[#F7C948] transition">Next Step</button>
+                                    <div className="flex gap-4 mt-6">
+                                        <Link to="/?skipLoader=true" className="w-1/3 flex items-center justify-center bg-gray-200 dark:bg-white/10 text-gray-800 dark:text-white font-bold py-4 rounded-xl hover:bg-gray-300 dark:hover:bg-white/20 transition">Back</Link>
+                                        <button onClick={() => setStep(2)} className="w-2/3 bg-[#D4AF37] text-black font-bold text-lg py-4 rounded-xl hover:bg-[#F7C948] transition">Next Step</button>
+                                    </div>
                                 )}
                             </motion.div>
                         )}
@@ -572,7 +668,6 @@ export function BookingPage() {
                                         <input type="email" placeholder="Email Address (For PDF Tickets)" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="w-full bg-white dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-[#D4AF37]" />
                                         <input type="tel" placeholder="Mobile Number" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} className="w-full bg-white dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-[#D4AF37]" />
                                         <input type="text" placeholder="Agent Code (Optional)" value={agentCode} onChange={(e) => setAgentCode(e.target.value)} className="w-full bg-white dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-[#D4AF37]" />
-                                        <p className="text-xs text-yellow-600 dark:text-[#D4AF37]/80 italic">No agent code entered later will be accepted for commission.</p>
                                     </div>
                                 </div>
 
@@ -732,13 +827,7 @@ export function BookingPage() {
                                 </div>
 
                                 <div className="max-w-md mx-auto space-y-3 mt-6">
-                                    <div className="flex items-center gap-3 p-4 bg-green-500/10 border border-green-500/30 rounded-xl text-green-700 dark:text-green-400 text-sm text-left shadow-sm">
-                                        <MessageCircle className="w-6 h-6 shrink-0 text-green-500" />
-                                        <div>
-                                            <p className="font-bold">WhatsApp Ticket Sent!</p>
-                                            <p className="text-xs opacity-80">E-Tickets & live location dispatched to {formData.phone}</p>
-                                        </div>
-                                    </div>
+
                                     <div className="flex items-center gap-3 p-4 bg-blue-500/10 border border-blue-500/30 rounded-xl text-blue-700 dark:text-blue-400 text-sm text-left shadow-sm">
                                         <MailCheck className="w-6 h-6 shrink-0 text-blue-500" />
                                         <div>

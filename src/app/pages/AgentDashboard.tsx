@@ -183,7 +183,7 @@ export function AgentDashboard() {
                                 <YAxis stroke="#6b7280" />
                                 <Tooltip cursor={{ fill: '#374151', opacity: 0.4 }} contentStyle={{ backgroundColor: '#111827', borderColor: '#374151', color: '#fff' }} />
                                 <Bar dataKey="commission" radius={[4, 4, 0, 0]}>
-                                    {monthlyPerformance.map((entry, index) => (
+                                    {monthlyPerformance.map((_, index) => (
                                         <Cell key={`cell-${index}`} fill={index === monthlyPerformance.length - 1 ? "#D4AF37" : "#4f46e5"} />
                                     ))}
                                 </Bar>

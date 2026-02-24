@@ -4,14 +4,13 @@ import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { motion, AnimatePresence } from "motion/react";
 import {
-    Users, Banknote, Ticket, CalendarClock, TrendingUp, X, Plus, Edit, Trash2, AlertCircle, Home, LogOut, ChevronDown, ChevronUp, Check, QrCode, MapPin
+    Users, Banknote, Ticket, CalendarClock, TrendingUp, X, Plus, Edit, Trash2, AlertCircle, Home, LogOut, ChevronDown, ChevronUp, Check, QrCode
 } from "lucide-react";
 import {
     PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend
 } from "recharts";
 import { bookingStore, type Booking } from "../utils/bookingStore";
 import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 // --- CONSTANTS ---
 const PACKAGES = [
     { id: "basic", name: "Basic Ride", price: 3499 },
@@ -69,6 +68,12 @@ export function AdminDashboard() {
     const [isOfflineModalOpen, setIsOfflineModalOpen] = useState(false);
     const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
     const [expandedBookingId, setExpandedBookingId] = useState<string | null>(null);
+
+    const [errorMsg, setErrorMsg] = useState("");
+    const showError = (msg: string) => {
+        setErrorMsg(msg);
+        setTimeout(() => setErrorMsg(""), 4000);
+    };
 
     const toggleExpand = (id: string) => {
         setExpandedBookingId(prev => (prev === id ? null : id));
@@ -154,14 +159,14 @@ export function AdminDashboard() {
         const finalTotalAmount = amountBeforeGst + gstAmount;
 
         if (!newBooking.customerName || !newBooking.customerAge || !newBooking.date) {
-            alert("Please fill out customer name, age, and date.");
+            showError("Please fill out customer name, age, and date.");
             return;
         }
 
         if (personsCount > 1) {
             for (let i = 0; i < personsCount - 1; i++) {
                 if (!newBooking.passengers[i]?.name?.trim() || !newBooking.passengers[i]?.age?.trim()) {
-                    alert(`Please fill out the name and age for Passenger ${i + 2}`);
+                    showError(`Please fill out the name and age for Passenger ${i + 2}`);
                     return;
                 }
             }
@@ -376,6 +381,24 @@ export function AdminDashboard() {
 
     return (
         <div className={`min-h-screen transition-colors duration-300 ${isLightTheme ? "bg-gray-50 text-gray-900" : "bg-[#05070A] text-white"} p-4 md:p-8 font-sans`}>
+            {/* Error Toast */}
+            <AnimatePresence>
+                {errorMsg && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -20, x: "-50%" }}
+                        animate={{ opacity: 1, y: 0, x: "-50%" }}
+                        exit={{ opacity: 0, y: -20, x: "-50%" }}
+                        className="fixed top-8 left-1/2 z-[100] flex items-center gap-3 bg-red-600 text-white px-6 py-4 rounded-2xl shadow-2xl font-semibold max-w-sm w-[90%]"
+                    >
+                        <AlertCircle className="w-6 h-6 shrink-0" />
+                        <span className="flex-1 text-sm">{errorMsg}</span>
+                        <button onClick={() => setErrorMsg("")} className="shrink-0 p-1 hover:bg-white/20 rounded-full transition">
+                            <X className="w-5 h-5" />
+                        </button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             <div className="max-w-7xl mx-auto space-y-8">
 
                 {/* Header & Toggle */}
@@ -526,7 +549,7 @@ export function AdminDashboard() {
                         <div className="h-[250px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={barData}>
-                                    <XAxis dataKey="name" stroke={isLightTheme ? "#9ca3af" : "#6b7280"} />
+                                    <XAxis dataKey="name" stroke={isLightTheme ? "#9ca3af" : "#6b7280"} interval={0} tick={{ fontSize: 11 }} />
                                     <YAxis stroke={isLightTheme ? "#9ca3af" : "#6b7280"} />
                                     <Tooltip contentStyle={{ backgroundColor: isLightTheme ? '#fff' : '#111827', borderColor: isLightTheme ? '#e5e7eb' : '#374151', color: isLightTheme ? '#111' : '#fff' }} cursor={{ fill: isLightTheme ? '#f3f4f6' : '#374151', opacity: 0.4 }} />
                                     <Bar dataKey="revenue" radius={[4, 4, 0, 0]}>
