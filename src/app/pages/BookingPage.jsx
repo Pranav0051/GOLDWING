@@ -541,28 +541,28 @@ export function BookingPage() {
                                 <input type="text" placeholder="Full Address" value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })} className="w-full bg-white dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-[#D4AF37]" />
                                 <div className="flex gap-4">
                                     <select value={formData.state} onChange={(e) => setFormData({ ...formData, state: e.target.value, city: "" })} className="w-1/2 bg-white dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-[#D4AF37]">
-                                        <option value="">Select State</option>
-                                        <option value="Maharashtra">Maharashtra</option>
-                                        <option value="Delhi">Delhi</option>
-                                        <option value="Karnataka">Karnataka</option>
-                                        <option value="Gujarat">Gujarat</option>
-                                        <option value="Tamil Nadu">Tamil Nadu</option>
-                                        <option value="Uttar Pradesh">Uttar Pradesh</option>
-                                        <option value="West Bengal">West Bengal</option>
-                                        <option value="Rajasthan">Rajasthan</option>
-                                        <option value="Kerala">Kerala</option>
+                                        <option value="" className="text-gray-900 bg-white dark:text-white dark:bg-[#0B0F19]">Select State</option>
+                                        <option value="Maharashtra" className="text-gray-900 bg-white dark:text-white dark:bg-[#0B0F19]">Maharashtra</option>
+                                        <option value="Delhi" className="text-gray-900 bg-white dark:text-white dark:bg-[#0B0F19]">Delhi</option>
+                                        <option value="Karnataka" className="text-gray-900 bg-white dark:text-white dark:bg-[#0B0F19]">Karnataka</option>
+                                        <option value="Gujarat" className="text-gray-900 bg-white dark:text-white dark:bg-[#0B0F19]">Gujarat</option>
+                                        <option value="Tamil Nadu" className="text-gray-900 bg-white dark:text-white dark:bg-[#0B0F19]">Tamil Nadu</option>
+                                        <option value="Uttar Pradesh" className="text-gray-900 bg-white dark:text-white dark:bg-[#0B0F19]">Uttar Pradesh</option>
+                                        <option value="West Bengal" className="text-gray-900 bg-white dark:text-white dark:bg-[#0B0F19]">West Bengal</option>
+                                        <option value="Rajasthan" className="text-gray-900 bg-white dark:text-white dark:bg-[#0B0F19]">Rajasthan</option>
+                                        <option value="Kerala" className="text-gray-900 bg-white dark:text-white dark:bg-[#0B0F19]">Kerala</option>
                                     </select>
                                     <select value={formData.city} onChange={(e) => setFormData({ ...formData, city: e.target.value })} className="w-1/2 bg-white dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-[#D4AF37]" disabled={!formData.state}>
-                                        <option value="">Select City</option>
-                                        {formData.state === "Maharashtra" && <><option value="Mumbai">Mumbai</option><option value="Pune">Pune</option><option value="Nagpur">Nagpur</option></>}
-                                        {formData.state === "Delhi" && <><option value="New Delhi">New Delhi</option><option value="Dwarka">Dwarka</option></>}
-                                        {formData.state === "Karnataka" && <><option value="Bengaluru">Bengaluru</option><option value="Mysuru">Mysuru</option></>}
-                                        {formData.state === "Gujarat" && <><option value="Ahmedabad">Ahmedabad</option><option value="Surat">Surat</option></>}
-                                        {formData.state === "Tamil Nadu" && <><option value="Chennai">Chennai</option><option value="Coimbatore">Coimbatore</option></>}
-                                        {formData.state === "Uttar Pradesh" && <><option value="Lucknow">Lucknow</option><option value="Kanpur">Kanpur</option></>}
-                                        {formData.state === "West Bengal" && <><option value="Kolkata">Kolkata</option><option value="Howrah">Howrah</option></>}
-                                        {formData.state === "Rajasthan" && <><option value="Jaipur">Jaipur</option><option value="Jodhpur">Jodhpur</option></>}
-                                        {formData.state === "Kerala" && <><option value="Thiruvananthapuram">Thiruvananthapuram</option><option value="Kochi">Kochi</option></>}
+                                        <option value="" className="text-gray-900 bg-white dark:text-white dark:bg-[#0B0F19]">Select City</option>
+                                        {formData.state === "Maharashtra" && <><option value="Mumbai" className="text-gray-900 bg-white dark:text-white dark:bg-[#0B0F19]">Mumbai</option><option value="Pune" className="text-gray-900 bg-white dark:text-white dark:bg-[#0B0F19]">Pune</option><option value="Nagpur" className="text-gray-900 bg-white dark:text-white dark:bg-[#0B0F19]">Nagpur</option></>}
+                                        {formData.state === "Delhi" && <><option value="New Delhi" className="text-gray-900 bg-white dark:text-white dark:bg-[#0B0F19]">New Delhi</option><option value="Dwarka" className="text-gray-900 bg-white dark:text-white dark:bg-[#0B0F19]">Dwarka</option></>}
+                                        {formData.state === "Karnataka" && <><option value="Bengaluru" className="text-gray-900 bg-white dark:text-white dark:bg-[#0B0F19]">Bengaluru</option><option value="Mysuru" className="text-gray-900 bg-white dark:text-white dark:bg-[#0B0F19]">Mysuru</option></>}
+                                        {formData.state === "Gujarat" && <><option value="Ahmedabad" className="text-gray-900 bg-white dark:text-white dark:bg-[#0B0F19]">Ahmedabad</option><option value="Surat" className="text-gray-900 bg-white dark:text-white dark:bg-[#0B0F19]">Surat</option></>}
+                                        {formData.state === "Tamil Nadu" && <><option value="Chennai" className="text-gray-900 bg-white dark:text-white dark:bg-[#0B0F19]">Chennai</option><option value="Coimbatore" className="text-gray-900 bg-white dark:text-white dark:bg-[#0B0F19]">Coimbatore</option></>}
+                                        {formData.state === "Uttar Pradesh" && <><option value="Lucknow" className="text-gray-900 bg-white dark:text-white dark:bg-[#0B0F19]">Lucknow</option><option value="Kanpur" className="text-gray-900 bg-white dark:text-white dark:bg-[#0B0F19]">Kanpur</option></>}
+                                        {formData.state === "West Bengal" && <><option value="Kolkata" className="text-gray-900 bg-white dark:text-white dark:bg-[#0B0F19]">Kolkata</option><option value="Howrah" className="text-gray-900 bg-white dark:text-white dark:bg-[#0B0F19]">Howrah</option></>}
+                                        {formData.state === "Rajasthan" && <><option value="Jaipur" className="text-gray-900 bg-white dark:text-white dark:bg-[#0B0F19]">Jaipur</option><option value="Jodhpur" className="text-gray-900 bg-white dark:text-white dark:bg-[#0B0F19]">Jodhpur</option></>}
+                                        {formData.state === "Kerala" && <><option value="Thiruvananthapuram" className="text-gray-900 bg-white dark:text-white dark:bg-[#0B0F19]">Thiruvananthapuram</option><option value="Kochi" className="text-gray-900 bg-white dark:text-white dark:bg-[#0B0F19]">Kochi</option></>}
                                     </select>
                                 </div>
                                 <input type="text" placeholder="Agent Code (Optional)" value={agentCode} onChange={(e) => setAgentCode(e.target.value)} className="w-full bg-white dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-[#D4AF37]" />
