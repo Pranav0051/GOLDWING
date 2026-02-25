@@ -1,6 +1,4 @@
 "use client";
-
-
 import { Navbar } from "../components/Navbar";
 import { Hero } from "../components/Hero";
 import { ExperienceHighlights } from "../components/ExperienceHighlights";
@@ -15,19 +13,14 @@ import { FloatingCTA } from "../components/FloatingCTA";
 import { Footer } from "../components/Footer";
 import { LiveNotifications } from "../components/LiveNotifications";
 import { PageLoader } from "../components/PageLoader";
-
 import { useNavigate } from "react-router";
-
 export function LandingPage() {
     const navigate = useNavigate();
-
-    const handleBookClick = (packageId?: string) => {
+    const handleBookClick = (packageId) => {
         const url = packageId ? `/book?pkg=${packageId}` : "/book";
         navigate(url);
     };
-
-    return (
-        <div className="min-h-screen bg-[#0B0F19] overflow-x-hidden">
+    return (<div className="min-h-screen bg-[#0B0F19] overflow-x-hidden">
             {/* Page Loader */}
             <PageLoader />
 
@@ -35,13 +28,13 @@ export function LandingPage() {
             <Navbar />
 
             {/* Hero Section */}
-            <Hero onBookClick={() => handleBookClick()} />
+            <Hero onBookClick={() => handleBookClick()}/>
 
             {/* Experience Highlights */}
             <ExperienceHighlights />
 
             {/* Pricing Cards */}
-            <PricingCards onBookClick={handleBookClick} />
+            <PricingCards onBookClick={handleBookClick}/>
 
             {/* Flight Timeline */}
             <FlightTimeline />
@@ -65,10 +58,9 @@ export function LandingPage() {
             <Footer />
 
             {/* Floating CTA */}
-            <FloatingCTA onBookClick={() => handleBookClick()} />
+            <FloatingCTA onBookClick={() => handleBookClick()}/>
 
             {/* Live Notifications */}
             <LiveNotifications />
-        </div>
-    );
+        </div>);
 }

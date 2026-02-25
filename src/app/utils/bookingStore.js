@@ -1,31 +1,12 @@
-export interface Booking {
-    id: string;
-    customerName: string;
-    persons: number;
-    passengers?: { name: string, age: string }[];
-    slot: string;
-    category: string;
-    type: 'ONLINE' | 'OFFLINE';
-    date: string;
-    status: 'Confirmed' | 'Pending' | 'Cancelled' | 'Completed';
-    price: number;
-    paymentMethod?: string;
-    agentRef?: string;
-    location?: string;
-    isVipCheckin?: boolean;
-    isBreakfast?: boolean;
-}
-
 const STORAGE_KEY = 'goldwing_bookings';
-
-const MOCK_INITIAL_BOOKINGS: Booking[] = [
+const MOCK_INITIAL_BOOKINGS = [
     { id: "GW-102934", customerName: "Rahul Sharma", persons: 1, slot: "06:00 AM", category: "Solo", type: "ONLINE", date: new Date().toISOString().split('T')[0], status: "Confirmed", price: 4365, location: "Goa" },
     { id: "GW-837462", customerName: "Priya Desai", persons: 2, slot: "07:30 AM", category: "Couple", type: "ONLINE", date: new Date().toISOString().split('T')[0], status: "Confirmed", price: 8730, location: "Goa" },
 ];
-
 export const bookingStore = {
-    getBookings: (): Booking[] => {
-        if (typeof window === 'undefined') return [];
+    getBookings: () => {
+        if (typeof window === 'undefined')
+            return [];
         const saved = localStorage.getItem(STORAGE_KEY);
         if (!saved) {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(MOCK_INITIAL_BOOKINGS));
@@ -33,23 +14,20 @@ export const bookingStore = {
         }
         return JSON.parse(saved);
     },
-
-    addBooking: (booking: Booking) => {
+    addBooking: (booking) => {
         const bookings = bookingStore.getBookings();
         const updated = [booking, ...bookings];
         localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
         // Trigger a custom event so other components can react if they are on the same page (unlikely for dashboard vs book, but good practice)
         window.dispatchEvent(new Event('bookingsChanged'));
     },
-
-    updateStatus: (id: string, status: Booking['status']) => {
+    updateStatus: (id, status) => {
         const bookings = bookingStore.getBookings();
         const updated = bookings.map(b => b.id === id ? { ...b, status } : b);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
         window.dispatchEvent(new Event('bookingsChanged'));
     },
-
-    deleteBooking: (id: string) => {
+    deleteBooking: (id) => {
         const bookings = bookingStore.getBookings();
         const updated = bookings.filter(b => b.id !== id);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
