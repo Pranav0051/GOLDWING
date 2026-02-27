@@ -58,19 +58,26 @@ const CATEGORIES = [
 const GST_RATE = 0.18;
 const INSURANCE_PRICE = 200;
 
-export function BookingPage() {
+export function AdventureSelector() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const refCode = searchParams.get("ref");
-    const [step, setStep] = useState(1); // 0 = Flash, 1 = Categories, 2 = Details, 3 = Packages, 4 = Slots, 5 = Payment, 6 = Confirmation
-    const [selectedCat, setSelectedCat] = useState(null);
-    const [backgroundIndex, setBackgroundIndex] = useState(2); // default fallback
+    // Form & UI States
+    const [step, setStep] = useState(0); // 0=Splash, 1=Category, 2=Packages, 3=Details, 4=Slot+Payment, 6=Confirmation
+    const [backgroundIndex, setBackgroundIndex] = useState(2);
+    const [showSplash, setShowSplash] = useState(true);
     const [showTermsModal, setShowTermsModal] = useState(false);
     const [isAdmin, setIsAdmin] = useState(false);
+    const [consent, setConsent] = useState({
+        terms: false,
+        media: false
+    });
+    const isConsentValid = consent.terms;
 
     const [bookingId, setBookingId] = useState("");
     const [errorMsg, setErrorMsg] = useState("");
 
+    // Error handling
     const showError = (msg) => {
         setErrorMsg(msg);
         setTimeout(() => setErrorMsg(""), 4000);
@@ -80,17 +87,11 @@ export function BookingPage() {
         setIsAdmin(localStorage.getItem("isAdminLoggedIn") === "true");
     }, []);
 
-    // Consent state
-    const [consent, setConsent] = useState({
-        terms: false,
-        media: false
-    });
-    const isConsentValid = consent.terms;
-
     // Passenger Detail state
     const [passengers, setPassengers] = useState([{ gender: "M", weight: "", age: "" }]);
     const [formData, setFormData] = useState({ name: "", email: "", phone: "", address: "", state: "", city: "" });
     const [selectedPkg, setSelectedPkg] = useState(null);
+    const [selectedCat, setSelectedCat] = useState(null);
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);
     const [selectedSlot, setSelectedSlot] = useState(null);
     const [paymentMethod, setPaymentMethod] = useState("UPI");
@@ -612,6 +613,15 @@ export function BookingPage() {
                                         </div>
                                     </motion.div>
                                 ))}
+                            </div>
+
+                            <div className="mt-12 text-center">
+                                <button
+                                    onClick={() => window.location.href = '/explore'}
+                                    className="px-8 py-3 rounded-full border border-black/30 dark:border-white/50 hover:bg-black/10 dark:hover:bg-white/20 transition-colors text-gray-900 dark:text-white font-bold flex items-center mx-auto"
+                                >
+                                    <Globe className="w-4 h-4 mr-2" /> Explore Website First
+                                </button>
                             </div>
                         </motion.div>
                     )}

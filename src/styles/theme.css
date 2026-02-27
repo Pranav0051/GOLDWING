@@ -178,4 +178,12 @@
     font-weight: var(--font-weight-normal);
     line-height: 1.5;
   }
+
+  input[type="date"] {
+    color-scheme: dark;
+  }
+
+  .light-theme input[type="date"] {
+    color-scheme: light;
+  }
 }

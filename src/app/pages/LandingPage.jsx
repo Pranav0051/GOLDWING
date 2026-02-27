@@ -12,7 +12,6 @@ import { FutureAdventures } from "../components/FutureAdventures";
 import { FloatingCTA } from "../components/FloatingCTA";
 import { Footer } from "../components/Footer";
 import { LiveNotifications } from "../components/LiveNotifications";
-import { PageLoader } from "../components/PageLoader";
 import { useNavigate } from "react-router";
 export function LandingPage() {
     const navigate = useNavigate();
@@ -20,47 +19,44 @@ export function LandingPage() {
         const url = packageId ? `/book?pkg=${packageId}` : "/book";
         navigate(url);
     };
-    return (<div className="min-h-screen bg-[#0B0F19] overflow-x-hidden">
-            {/* Page Loader */}
-            <PageLoader />
+    return (<div className="min-h-[100dvh] bg-[#0B0F19] overflow-x-hidden">
+        {/* Navbar */}
+        <Navbar />
 
-            {/* Navbar */}
-            <Navbar />
+        {/* Hero Section */}
+        <Hero onBookClick={() => handleBookClick()} />
 
-            {/* Hero Section */}
-            <Hero onBookClick={() => handleBookClick()}/>
+        {/* Experience Highlights */}
+        <ExperienceHighlights />
 
-            {/* Experience Highlights */}
-            <ExperienceHighlights />
+        {/* Pricing Cards */}
+        <PricingCards onBookClick={handleBookClick} />
 
-            {/* Pricing Cards */}
-            <PricingCards onBookClick={handleBookClick}/>
+        {/* Flight Timeline */}
+        <FlightTimeline />
 
-            {/* Flight Timeline */}
-            <FlightTimeline />
+        {/* Safety Section */}
+        <SafetySection />
 
-            {/* Safety Section */}
-            <SafetySection />
+        {/* Things To Carry */}
+        <ThingsToCarry />
 
-            {/* Things To Carry */}
-            <ThingsToCarry />
+        {/* FAQ Section */}
+        <FAQ />
 
-            {/* FAQ Section */}
-            <FAQ />
+        {/* Testimonials */}
+        <Testimonials />
 
-            {/* Testimonials */}
-            <Testimonials />
+        {/* Future Adventures */}
+        <FutureAdventures />
 
-            {/* Future Adventures */}
-            <FutureAdventures />
+        {/* Footer */}
+        <Footer />
 
-            {/* Footer */}
-            <Footer />
+        {/* Floating CTA */}
+        <FloatingCTA onBookClick={() => handleBookClick()} />
 
-            {/* Floating CTA */}
-            <FloatingCTA onBookClick={() => handleBookClick()}/>
-
-            {/* Live Notifications */}
-            <LiveNotifications />
-        </div>);
+        {/* Live Notifications */}
+        <LiveNotifications />
+    </div>);
 }

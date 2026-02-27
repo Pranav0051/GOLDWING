@@ -16,9 +16,10 @@ export function LoginPage() {
     };
     // Persist login state
     useState(() => {
-        const loggedIn = localStorage.getItem("isAdminLoggedIn");
-        if (loggedIn === "true") {
+        if (localStorage.getItem("isAdminLoggedIn") === "true") {
             navigate("/admin");
+        } else if (localStorage.getItem("isStaffLoggedIn") === "true") {
+            navigate("/staff");
         }
     });
     const handleLogin = (e) => {
@@ -34,15 +35,22 @@ export function LoginPage() {
             } else {
                 showError("Incorrect password for Admin access.");
             }
+        } else if (loginRole === "staff") {
+            if (password === "staff123" || email.includes("staff")) {
+                localStorage.setItem("isStaffLoggedIn", "true");
+                navigate("/staff");
+            } else {
+                showError("Incorrect password for Staff access.");
+            }
         } else {
-            if (!email.includes("admin")) {
+            if (!email.includes("admin") && !email.includes("staff")) {
                 navigate("/agent");
             } else {
-                showError("Please select Admin Access to login as an admin.");
+                showError("Please select the correct role access to login.");
             }
         }
     };
-    return (<div className="min-h-screen bg-gradient-to-br from-[#9Bc2d3] to-[#e4a8c9] flex items-center justify-center p-4 lg:p-12 font-sans relative">
+    return (<div className="min-h-[100dvh] bg-gradient-to-br from-[#9Bc2d3] to-[#e4a8c9] flex items-center justify-center p-4 md:p-12 font-sans relative overflow-x-hidden">
         {/* Error Toast */}
         <AnimatePresence>
             {errorMsg && (<motion.div initial={{ opacity: 0, y: -20, x: "-50%" }} animate={{ opacity: 1, y: 0, x: "-50%" }} exit={{ opacity: 0, y: -20, x: "-50%" }} className="fixed top-8 left-1/2 z-[100] flex items-center gap-3 bg-red-600 text-white px-6 py-4 rounded-2xl shadow-2xl font-semibold max-w-sm w-[90%]">
@@ -58,18 +66,21 @@ export function LoginPage() {
             ← Back to Home
         </Link>
 
-        <div className="w-full max-w-5xl bg-white rounded-[40px] shadow-2xl overflow-hidden flex flex-col md:flex-row min-h-[600px]">
+        <div className="w-full max-w-5xl bg-white rounded-[30px] md:rounded-[40px] shadow-2xl overflow-hidden flex flex-col md:flex-row min-h-0">
 
             {/* Left Form Section */}
-            <div className="w-full md:w-1/2 p-10 md:p-16 flex flex-col justify-center bg-white relative">
+            <div className="w-full md:w-1/2 p-8 md:p-16 flex flex-col justify-center bg-white relative">
 
-                {/* Admin/Agent Toggle via small pills at top right for functionality */}
+                {/* Admin/Agent/Staff Toggle via small pills at top right for functionality */}
                 <div className="absolute top-8 right-8 flex gap-2">
                     <button onClick={() => setLoginRole("agent")} className={`px-3 py-1 text-xs rounded-full font-bold transition ${loginRole === "agent" ? 'bg-[#d98cb3] text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}>
-                        Agent Login
+                        Agent
+                    </button>
+                    <button onClick={() => setLoginRole("staff")} className={`px-3 py-1 text-xs rounded-full font-bold transition ${loginRole === "staff" ? 'bg-[#d98cb3] text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}>
+                        Staff
                     </button>
                     <button onClick={() => setLoginRole("admin")} className={`px-3 py-1 text-xs rounded-full font-bold transition ${loginRole === "admin" ? 'bg-[#d98cb3] text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}>
-                        Admin Access
+                        Admin
                     </button>
                 </div>
 
