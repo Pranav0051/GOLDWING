@@ -581,7 +581,8 @@ export function AdventureSelector() {
                                         >
                                             {/* Front Face */}
                                             <div
-                                                className="absolute inset-0 h-full w-full [backface-visibility:hidden] [transform:rotateY(0deg)] rounded-3xl bg-white/70 dark:bg-black/20 border border-black/10 dark:border-white/10 shadow-xl flex flex-col items-center justify-center p-8 transition-all duration-700"
+                                                onClick={() => handleProceedToDetails(cat.id)}
+                                                className="absolute inset-0 h-full w-full [backface-visibility:hidden] [transform:rotateY(0deg)] rounded-3xl bg-white/70 dark:bg-black/20 border border-black/10 dark:border-white/10 shadow-xl flex flex-col items-center justify-center p-8 transition-all duration-700 active:scale-95"
                                             >
                                                 <div className="w-24 h-24 mb-6 rounded-full bg-black/5 dark:bg-white/5 flex items-center justify-center p-4">
                                                     <img src={cat.icon} alt={cat.title} className="w-full h-full object-contain filter drop-shadow-lg transition-transform duration-500 group-hover:scale-110" />
