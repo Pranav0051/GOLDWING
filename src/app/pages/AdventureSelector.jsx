@@ -63,7 +63,7 @@ export function AdventureSelector() {
     const [searchParams] = useSearchParams();
     const refCode = searchParams.get("ref");
     // Form & UI States
-    const [step, setStep] = useState(0); // 0=Splash, 1=Category, 2=Packages, 3=Details, 4=Slot+Payment, 6=Confirmation
+    const [step, setStep] = useState(1); // 1=Category, 2=Packages, 3=Details, 4=Slot+Payment, 6=Confirmation
     const [backgroundIndex, setBackgroundIndex] = useState(2);
     const [showSplash, setShowSplash] = useState(true);
     const [showTermsModal, setShowTermsModal] = useState(false);
@@ -96,25 +96,11 @@ export function AdventureSelector() {
     const [selectedSlot, setSelectedSlot] = useState(null);
     const [paymentMethod, setPaymentMethod] = useState("UPI");
 
-    // Flash Screen Auto-Transition
-    useEffect(() => {
-        if (step === 0) {
-            document.body.style.overflow = "hidden";
-            const timer = setTimeout(() => {
-                setStep(1);
-                document.body.style.overflow = "auto";
-            }, 3000);
-            return () => clearTimeout(timer);
-        }
-    }, [step]);
-
-    // Dynamic Background transition effect
+    // Category change effect
     useEffect(() => {
         if (selectedCat) {
             const catInfo = CATEGORIES.find(c => c.id === selectedCat);
             if (catInfo) setBackgroundIndex(catInfo.bg);
-        } else {
-            // Loop backgrounds softly or stay black
         }
     }, [selectedCat]);
 
@@ -440,49 +426,7 @@ export function AdventureSelector() {
     };
 
     // Renders
-    if (step === 0) {
-        return (
-            <motion.div
-                key="flash"
-                className="fixed inset-0 bg-black z-50 flex flex-col items-center justify-center overflow-hidden"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-            >
-                <motion.img
-                    src="/images/logo.png"
-                    alt="Goldwing Logo"
-                    className="w-48 mb-6 drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]"
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ duration: 1.5, ease: "easeOut" }}
-                />
-                <motion.div
-                    className="text-white text-3xl md:text-5xl font-extrabold tracking-widest uppercase font-serif"
-                    initial={{ y: 20, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ delay: 0.5, duration: 1 }}
-                >
-                    Adventure Begins Here
-                </motion.div>
 
-                {/* Animated pre-loader line */}
-                <motion.div
-                    className="w-64 h-1 bg-white/20 mt-12 rounded-full overflow-hidden"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 1 }}
-                >
-                    <motion.div
-                        className="h-full bg-yellow-500"
-                        initial={{ width: "0%" }}
-                        animate={{ width: "100%" }}
-                        transition={{ duration: 2, ease: "linear" }}
-                    />
-                </motion.div>
-            </motion.div>
-        );
-    }
 
     return (
         <div className="min-h-screen bg-white dark:bg-[#0B0F19] text-gray-900 dark:text-white font-sans overflow-y-auto overflow-x-hidden relative selection-bg transition-colors duration-300">
@@ -532,7 +476,7 @@ export function AdventureSelector() {
                             </button>
                         ) : step === 6 ? (
                             <button
-                                onClick={() => window.location.href = '/'}
+                                onClick={() => navigate('/')}
                                 className="flex items-center text-gray-900 dark:text-white/70 hover:text-black dark:hover:text-white transition bg-white/10 dark:bg-black/10 px-4 py-2 rounded-full"
                             >
                                 <ArrowLeft className="w-4 h-4 mr-2" /> Home
@@ -594,10 +538,10 @@ export function AdventureSelector() {
                                             <div
                                                 className="absolute inset-0 h-full w-full [backface-visibility:hidden] [transform:rotateY(180deg)] rounded-3xl bg-black border border-yellow-500/30 shadow-2xl flex flex-col items-center justify-center p-8 transition-all duration-700"
                                             >
-                                                <div className="absolute top-0 right-0 p-4 opacity-20 pointer-events-none">
-                                                    <img src={cat.icon} alt="decoration" className="w-24 filter grayscale invert" />
-                                                </div>
                                                 <div className="flex-1 flex flex-col justify-center items-center w-full mt-4 z-10">
+                                                    <div className="mb-4 transform group-hover:scale-110 transition-transform duration-500">
+                                                        <img src={cat.icon} alt={cat.title} className="w-20 h-20 object-contain filter brightness-200 invert opacity-100" />
+                                                    </div>
                                                     <h3 className="text-4xl font-black mb-2 text-white leading-snug">{cat.title}</h3>
                                                     <p className="text-yellow-500 font-semibold italic text-center text-lg">{cat.tagline}</p>
                                                 </div>
@@ -618,7 +562,7 @@ export function AdventureSelector() {
 
                             <div className="mt-12 text-center">
                                 <button
-                                    onClick={() => window.location.href = '/explore'}
+                                    onClick={() => navigate('/explore')}
                                     className="px-8 py-3 rounded-full border border-black/30 dark:border-white/50 hover:bg-black/10 dark:hover:bg-white/20 transition-colors text-gray-900 dark:text-white font-bold flex items-center mx-auto"
                                 >
                                     <Globe className="w-4 h-4 mr-2" /> Explore Website First
